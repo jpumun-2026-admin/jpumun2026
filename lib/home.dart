@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jpumun_website/widgets/about.dart';
 import 'package:jpumun_website/widgets/committees.dart';
+import 'package:jpumun_website/widgets/contact_section.dart';
 import 'package:jpumun_website/widgets/register_widget.dart';
 import 'package:jpumun_website/widgets/resources.dart';
 import 'package:jpumun_website/widgets/theme.dart';
@@ -90,6 +91,7 @@ class _HomePageState extends State<HomePage> {
             CommitteesSection(),
             ResourcesSection(),
             RegistrationSection(),
+            ContactSection(),
           ],
         ),
       ),
@@ -105,582 +107,347 @@ class _HomePageState extends State<HomePage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
+        final isMobile = width < 700;
+        final isTablet = width >= 700 && width < 1100;
+        final screenHeight = MediaQuery.sizeOf(context).height;
+        final heroHeight = isMobile
+            ? (screenHeight < 760 ? 760.0 : screenHeight)
+            : isTablet
+            ? (screenHeight < 720 ? 720.0 : screenHeight)
+            : (screenHeight < 700 ? 700.0 : screenHeight);
 
-        if (width < 700) {
-          return _buildMobileHero(
-            days: days,
-            hours: hours,
-            minutes: minutes,
-            seconds: seconds,
-          );
-        }
-
-        if (width < 1200) {
-          return _buildTabletHero(
-            days: days,
-            hours: hours,
-            minutes: minutes,
-            seconds: seconds,
-          );
-        }
-
-        return _buildDesktopHero(
-          days: days,
-          hours: hours,
-          minutes: minutes,
-          seconds: seconds,
+        return SizedBox(
+          width: double.infinity,
+          height: heroHeight,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                'lib/assets/hero_bg.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+              ),
+              // A subtle overlay keeps text readable while preserving the
+              // blur and tonal treatment baked into hero_bg.png.
+              Container(color: const Color(0x22071320)),
+              SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    isMobile ? 20 : 36,
+                    isMobile ? 22 : 28,
+                    isMobile ? 20 : 36,
+                    isMobile ? 86 : 92,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1050),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'lib/assets/new_logo.png',
+                            width: isMobile ? 250 : (isTablet ? 330 : 600),
+                            fit: BoxFit.contain,
+                          ),
+                          SizedBox(height: isMobile ? 24 : 28),
+                          Text(
+                            'Join the experience before it begins.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.prata(
+                              color: const Color(0xFFF9F5F4),
+                              fontSize: isMobile ? 28 : (isTablet ? 36 : 55),
+                              fontWeight: FontWeight.w400,
+                              height: 1.25,
+                              shadows: const [
+                                Shadow(
+                                  blurRadius: 10,
+                                  color: Color(0x99000000),
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: isMobile ? 18 : 22),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            runAlignment: WrapAlignment.center,
+                            spacing: 12,
+                            runSpacing: 10,
+                            children: const [
+                              _HeroInfoPill(
+                                icon: Icons.calendar_month_rounded,
+                                text: '31st August - 1st September',
+                              ),
+                              _HeroInfoPill(
+                                icon: Icons.location_on_rounded,
+                                text: 'Jain University, Jayanagar',
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: isMobile ? 24 : 30),
+                          _ResponsiveCountdown(
+                            days: days,
+                            hours: hours,
+                            minutes: minutes,
+                            seconds: seconds,
+                            compact: isMobile,
+                          ),
+                          SizedBox(height: isMobile ? 25 : 30),
+                          _HeroRegisterButton(onTap: _scrollToRegistration),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: isMobile ? 14 : 18,
+                child: _ScrollIndicator(onTap: _scrollDown, mobile: isMobile),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  // ============================================================
-  // DESKTOP
-  // ============================================================
+  void _scrollToRegistration() {
+    if (!_scrollController.hasClients) return;
 
-  Widget _buildDesktopHero({
-    required int days,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
+    // Registration is the sixth homepage section. This intentionally scrolls
+    // to it rather than choosing individual/institutional registration for
+    // the visitor.
+    final viewport = MediaQuery.sizeOf(context).height;
+    final target = (viewport * 5.0).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
 
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+}
+
+// ============================================================
+// HERO COMPONENTS
+// ============================================================
+
+class _HeroInfoPill extends StatelessWidget {
+  const _HeroInfoPill({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      height: screenHeight,
-      constraints: const BoxConstraints(minHeight: 700),
-      color: const Color(0xFF0C1630),
-      child: Stack(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xDD181A1E),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: const Color(0xFFC9A86A), width: 1.2),
+        boxShadow: const [BoxShadow(color: Color(0x55C9A86A), blurRadius: 10)],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 76),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 60,
-                    child: Transform.translate(
-                      offset: const Offset(0, -10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDesktopHeading(),
-
-                          const SizedBox(height: 60),
-
-                          _buildDesktopCountdown(
-                            days: days,
-                            hours: hours,
-                            minutes: minutes,
-                            seconds: seconds,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 50),
-
-                  Expanded(flex: 40, child: _buildDesktopLogo()),
-                ],
-              ),
-            ),
-          ),
-
-          Positioned(
-            bottom: 27,
-            left: 0,
-            right: 0,
-            child: _ScrollIndicator(onTap: _scrollDown),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopHeading() {
-    return Text(
-      'Join the experience before it\nbegins.',
-      style: GoogleFonts.prata(
-        color: const Color(0xFFF9F5F4),
-        fontSize: 43,
-        fontWeight: FontWeight.w400,
-        height: 1.35,
-      ),
-    );
-  }
-
-  Widget _buildDesktopCountdown({
-    required int days,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _CountdownBox(value: days.toString(), label: 'DAYS'),
-
-        const _CountdownSeparator(),
-
-        _CountdownBox(value: _twoDigits(hours), label: 'HOURS'),
-
-        const _CountdownSeparator(),
-
-        _CountdownBox(value: _twoDigits(minutes), label: 'MINUTES'),
-
-        const _CountdownSeparator(),
-
-        _CountdownBox(value: _twoDigits(seconds), label: 'SECONDS'),
-      ],
-    );
-  }
-
-  Widget _buildDesktopLogo() {
-    return Transform.translate(
-      offset: const Offset(0, 5),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'lib/assets/logo_hero.png',
-            width: 512,
-            height: 512,
-            fit: BoxFit.contain,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // MOBILE
-  // ============================================================
-
-  Widget _buildTabletHero({
-    required int days,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-
-    return SizedBox(
-      width: double.infinity,
-      height: screenHeight < 800 ? 800 : screenHeight,
-      child: ColoredBox(
-        color: const Color(0xFF0C1630),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(50, 45, 50, 100),
-                child: Column(
-                  children: [
-                    // Logo
-                    Image.asset(
-                      'lib/assets/logo_hero.png',
-                      width: 280,
-                      height: 280,
-                      fit: BoxFit.contain,
-                    ),
-
-                    const SizedBox(height: 50),
-
-                    // Heading
-                    Text(
-                      'Join the experience before it\nbegins.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.prata(
-                        color: const Color(0xFFF9F5F4),
-                        fontSize: 35,
-                        fontWeight: FontWeight.w400,
-                        height: 1.3,
-                      ),
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    // Countdown
-                    _buildTabletCountdown(
-                      days: days,
-                      hours: hours,
-                      minutes: minutes,
-                      seconds: seconds,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 25,
-              child: _ScrollIndicator(onTap: _scrollDown, mobile: true),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabletCountdown({
-    required int days,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _TabletCountdownBox(value: days.toString(), label: 'DAYS'),
-
-        const _TabletCountdownSeparator(),
-
-        _TabletCountdownBox(value: _twoDigits(hours), label: 'HOURS'),
-
-        const _TabletCountdownSeparator(),
-
-        _TabletCountdownBox(value: _twoDigits(minutes), label: 'MINUTES'),
-
-        const _TabletCountdownSeparator(),
-
-        _TabletCountdownBox(value: _twoDigits(seconds), label: 'SECONDS'),
-      ],
-    );
-  }
-
-  Widget _buildMobileHero({
-    required int days,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-
-    return SizedBox(
-      width: double.infinity,
-      height: screenHeight < 700 ? 700 : screenHeight,
-      child: ColoredBox(
-        color: const Color(0xFF0C1630),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Stack(
-            children: [
-              // Main content
-              Positioned(
-                top: 45,
-                left: 0,
-                right: 0,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Logo
-                    Image.asset(
-                      'lib/assets/logo_hero.png',
-                      width: 310,
-                      height: 310,
-                      fit: BoxFit.contain,
-                    ),
-
-                    const SizedBox(height: 70),
-
-                    // Heading
-                    Center(
-                      child: Text(
-                        'Join the experience before it begins.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.prata(
-                          color: const Color(0xFFF9F5F4),
-                          fontSize: 34,
-                          fontWeight: FontWeight.w400,
-                          height: 1.25,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    // Countdown
-                    _buildMobileCountdown(
-                      days: days,
-                      hours: hours,
-                      minutes: minutes,
-                      seconds: seconds,
-                    ),
-                  ],
-                ),
-              ),
-
-              // Scroll indicator stays at bottom of viewport
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 24,
-                child: _ScrollIndicator(onTap: _scrollDown, mobile: true),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileCountdown({
-    required int days,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: _MobileCountdownBox(value: days.toString(), label: 'DAYS'),
-        ),
-
-        const _MobileCountdownSeparator(),
-
-        Expanded(
-          child: _MobileCountdownBox(value: _twoDigits(hours), label: 'HOURS'),
-        ),
-
-        const _MobileCountdownSeparator(),
-
-        Expanded(
-          child: _MobileCountdownBox(
-            value: _twoDigits(minutes),
-            label: 'MINUTES',
-          ),
-        ),
-
-        const _MobileCountdownSeparator(),
-
-        Expanded(
-          child: _MobileCountdownBox(
-            value: _twoDigits(seconds),
-            label: 'SECONDS',
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ============================================================
-// DESKTOP COUNTDOWN
-// ============================================================
-
-class _CountdownBox extends StatelessWidget {
-  const _CountdownBox({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 132,
-          height: 110,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFF181A1E),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF792923), width: 4),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.ibmPlexSans(
-              color: const Color(0xFFDDBA77),
-              fontSize: 56,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        Text(
-          label,
-          style: GoogleFonts.prata(
-            color: const Color(0xFFF5F0F0),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CountdownSeparator extends StatelessWidget {
-  const _CountdownSeparator();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 33),
-      child: Text(
-        ':',
-        style: GoogleFonts.ibmPlexSans(
-          color: const Color(0xFFF5F0F0),
-          fontSize: 44,
-          fontWeight: FontWeight.w600,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// MOBILE AND TABLET COUNTDOWN
-// ============================================================
-
-class _TabletCountdownBox extends StatelessWidget {
-  const _TabletCountdownBox({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 105,
-          height: 90,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFF181A1E),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF792923), width: 3),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.ibmPlexSans(
-              color: const Color(0xFFDDBA77),
-              fontSize: 45,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 9),
-
-        Text(
-          label,
-          style: GoogleFonts.prata(
-            color: const Color(0xFFF5F0F0),
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TabletCountdownSeparator extends StatelessWidget {
-  const _TabletCountdownSeparator();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 9, right: 9, top: 27),
-      child: Text(
-        ':',
-        style: GoogleFonts.ibmPlexSans(
-          color: const Color(0xFFF5F0F0),
-          fontSize: 34,
-          fontWeight: FontWeight.w600,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
-
-class _MobileCountdownBox extends StatelessWidget {
-  const _MobileCountdownBox({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: const Color(0xFF181A1E),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFF792923), width: 3),
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  value,
-                  style: GoogleFonts.ibmPlexSans(
-                    color: const Color(0xFFDDBA77),
-                    fontSize: 35,
-                    fontWeight: FontWeight.w700,
-                    height: 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            maxLines: 1,
-            style: GoogleFonts.prata(
-              color: const Color(0xFFF5F0F0),
-              fontSize: 11,
+          Icon(icon, size: 24, color: const Color(0xFFF9F5F4)),
+          const SizedBox(width: 7),
+          Text(
+            text,
+            style: GoogleFonts.ibmPlexSerif(
+              color: const Color(0xFFF9F5F4),
+              fontSize: 20,
               fontWeight: FontWeight.w400,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResponsiveCountdown extends StatelessWidget {
+  const _ResponsiveCountdown({
+    required this.days,
+    required this.hours,
+    required this.minutes,
+    required this.seconds,
+    required this.compact,
+  });
+
+  final int days;
+  final int hours;
+  final int minutes;
+  final int seconds;
+  final bool compact;
+
+  String _twoDigits(int value) => value.toString().padLeft(2, '0');
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final veryNarrow = constraints.maxWidth < 390;
+        final boxWidth = compact ? (veryNarrow ? 67.0 : 75.0) : 150.0;
+        final boxHeight = compact ? (veryNarrow ? 65.0 : 72.0) : 130.0;
+        final valueSize = compact ? (veryNarrow ? 29.0 : 33.0) : 45.0;
+        final separatorSize = compact ? 28.0 : 38.0;
+        final separatorPadding = compact ? (veryNarrow ? 4.0 : 6.0) : 10.0;
+
+        Widget box(String value, String label) => _HeroCountdownBox(
+          value: value,
+          label: label,
+          width: boxWidth,
+          height: boxHeight,
+          valueSize: valueSize,
+          labelSize: compact ? 10 : 12,
+        );
+
+        Widget separator() => Padding(
+          padding: EdgeInsets.fromLTRB(
+            separatorPadding,
+            compact ? 16 : 22,
+            separatorPadding,
+            0,
+          ),
+          child: Text(
+            ':',
+            style: GoogleFonts.ibmPlexSans(
+              color: const Color(0xFFF9F5F4),
+              fontSize: separatorSize,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        );
+
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              box(days.toString(), 'DAYS'),
+              separator(),
+              box(_twoDigits(hours), 'HOURS'),
+              separator(),
+              box(_twoDigits(minutes), 'MINUTES'),
+              separator(),
+              box(_twoDigits(seconds), 'SECONDS'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HeroCountdownBox extends StatelessWidget {
+  const _HeroCountdownBox({
+    required this.value,
+    required this.label,
+    required this.width,
+    required this.height,
+    required this.valueSize,
+    required this.labelSize,
+  });
+
+  final String value;
+  final String label;
+  final double width;
+  final double height;
+  final double valueSize;
+  final double labelSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: width,
+          height: height,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xE8181A1E),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFF792923), width: 3),
+            boxShadow: const [
+              BoxShadow(color: Color(0x33000000), blurRadius: 10),
+            ],
+          ),
+          child: Text(
+            value,
+            style: GoogleFonts.ibmPlexSans(
+              color: const Color(0xFFDDBA77),
+              fontSize: valueSize,
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: GoogleFonts.prata(
+            color: const Color(0xFFF5F0F0),
+            fontSize: labelSize,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ],
     );
   }
 }
 
-class _MobileCountdownSeparator extends StatelessWidget {
-  const _MobileCountdownSeparator();
+class _HeroRegisterButton extends StatefulWidget {
+  const _HeroRegisterButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_HeroRegisterButton> createState() => _HeroRegisterButtonState();
+}
+
+class _HeroRegisterButtonState extends State<_HeroRegisterButton> {
+  bool _hovering = false;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 5, right: 5, top: 18),
-      child: Text(
-        ':',
-        style: GoogleFonts.ibmPlexSans(
-          color: const Color(0xFFF5F0F0),
-          fontSize: 27,
-          fontWeight: FontWeight.w600,
-          height: 1,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 250,
+          height: 80,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: _hovering
+                ? const Color(0xE62A2928)
+                : const Color(0xE6181A1E),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFDDBA77), width: 1.5),
+            boxShadow: const [
+              BoxShadow(color: Color(0x33000000), blurRadius: 10),
+            ],
+          ),
+          child: Text(
+            'Register Now',
+            style: GoogleFonts.prata(
+              color: const Color(0xFFF9F5F4),
+              fontSize: 24,
+            ),
+          ),
         ),
       ),
     );
