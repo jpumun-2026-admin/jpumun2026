@@ -19,7 +19,7 @@ class MainApp extends StatelessWidget {
       initialRoute: '/home',
       routes: {
         '/home': (context) => HomePage(),
-        '/register': (context) => RegisterPage(),
+        '/register': (context) => RegisterIndividualForm(),
         '/register-institute':(context) => RegisterInstitute()
       },
       // Redirect root to /home for direct visits to '/'
