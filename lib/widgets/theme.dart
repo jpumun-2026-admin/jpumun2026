@@ -211,7 +211,7 @@ class ThemeSection extends StatelessWidget {
   }) {
     return Text(
       'The G20 Summit',
-      style: GoogleFonts.ibmPlexSerif(
+      style: GoogleFonts.prata(
         color: _gold,
         fontSize: fontSize,
         fontWeight: FontWeight.w700,
@@ -230,7 +230,7 @@ class ThemeSection extends StatelessWidget {
     return Text(
       "Where the world's leading nations convene, "
       "and decisions carry weight.",
-      style: GoogleFonts.ibmPlexSerif(
+      style: GoogleFonts.prata(
         color: _gold,
         fontSize: fontSize,
         fontWeight: FontWeight.w400,

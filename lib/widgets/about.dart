@@ -196,7 +196,7 @@ class AboutSection extends StatelessWidget {
   }) {
     return Text(
       'The MUN Society',
-      style: GoogleFonts.ibmPlexSerif(
+      style: GoogleFonts.prata(
         color: _gold,
         fontSize: fontSize,
         fontWeight: FontWeight.w700,

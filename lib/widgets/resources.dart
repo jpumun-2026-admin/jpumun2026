@@ -441,7 +441,7 @@ class _ResourceCardState extends State<_ResourceCard> {
         Text(
           widget.resource.title,
           textAlign: TextAlign.center,
-          style: GoogleFonts.ibmPlexSerif(
+          style: GoogleFonts.prata(
             color: const Color(0xFFC9A86A),
             fontSize: widget.titleSize,
             fontWeight: FontWeight.w700,
@@ -484,7 +484,7 @@ class _ResourceCardState extends State<_ResourceCard> {
         Expanded(
           child: Text(
             widget.resource.title,
-            style: GoogleFonts.ibmPlexSerif(
+            style: GoogleFonts.prata(
               color: const Color(0xFFC9A86A),
               fontSize: widget.titleSize,
               fontWeight: FontWeight.w700,

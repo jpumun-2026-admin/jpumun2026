@@ -338,7 +338,7 @@ class _RegistrationCardState extends State<_RegistrationCard> {
             // ==================================================
             Text(
               widget.title,
-              style: GoogleFonts.ibmPlexSerif(
+              style: GoogleFonts.prata(
                 color: Colors.white,
                 fontSize: widget.titleSize,
                 fontWeight: FontWeight.w700,
@@ -446,7 +446,7 @@ class _RegisterButtonState extends State<_RegisterButton> {
             children: [
               Text(
                 'REGISTER',
-                style: GoogleFonts.ibmPlexSerif(
+                style: GoogleFonts.prata(
                   color: const Color(0xFF0B132B),
                   fontSize: widget.fontSize,
                   fontWeight: FontWeight.w700,

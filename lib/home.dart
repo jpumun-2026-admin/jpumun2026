@@ -203,7 +203,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildDesktopHeading() {
     return Text(
       'Join the experience before it\nbegins.',
-      style: GoogleFonts.ibmPlexSerif(
+      style: GoogleFonts.prata(
         color: const Color(0xFFF9F5F4),
         fontSize: 43,
         fontWeight: FontWeight.w400,
@@ -294,7 +294,7 @@ class _HomePageState extends State<HomePage> {
                     Text(
                       'Join the experience before it\nbegins.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.ibmPlexSerif(
+                      style: GoogleFonts.prata(
                         color: const Color(0xFFF9F5F4),
                         fontSize: 35,
                         fontWeight: FontWeight.w400,
@@ -395,7 +395,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         'Join the experience before it begins.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.ibmPlexSerif(
+                        style: GoogleFonts.prata(
                           color: const Color(0xFFF9F5F4),
                           fontSize: 34,
                           fontWeight: FontWeight.w400,
@@ -511,7 +511,7 @@ class _CountdownBox extends StatelessWidget {
 
         Text(
           label,
-          style: GoogleFonts.ibmPlexSerif(
+          style: GoogleFonts.prata(
             color: const Color(0xFFF5F0F0),
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -580,7 +580,7 @@ class _TabletCountdownBox extends StatelessWidget {
 
         Text(
           label,
-          style: GoogleFonts.ibmPlexSerif(
+          style: GoogleFonts.prata(
             color: const Color(0xFFF5F0F0),
             fontSize: 13,
             fontWeight: FontWeight.w400,
@@ -655,7 +655,7 @@ class _MobileCountdownBox extends StatelessWidget {
           child: Text(
             label,
             maxLines: 1,
-            style: GoogleFonts.ibmPlexSerif(
+            style: GoogleFonts.prata(
               color: const Color(0xFFF5F0F0),
               fontSize: 11,
               fontWeight: FontWeight.w400,

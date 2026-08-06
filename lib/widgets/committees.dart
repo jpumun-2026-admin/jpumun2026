@@ -33,8 +33,7 @@ class CommitteesSection extends StatelessWidget {
           'will navigate competing national interests, existing treaty '
           'frameworks, and the technological shifts reshaping global '
           'deterrence.',
-      agenda:
-          'Nuclear risk reduction and arms control in the 21st century.',
+      agenda: 'Nuclear risk reduction and arms control in the 21st century.',
     ),
     _CommitteeData(
       abbreviation: 'CCC',
@@ -76,24 +75,14 @@ class CommitteesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.fromLTRB(
-        120,
-        100,
-        120,
-        100,
-      ),
+      padding: const EdgeInsets.fromLTRB(120, 100, 120, 100),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 1696,
-          ),
+          constraints: const BoxConstraints(maxWidth: 1696),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionLabel(
-                fontSize: 28,
-                letterSpacing: 13,
-              ),
+              _buildSectionLabel(fontSize: 28, letterSpacing: 13),
               const SizedBox(height: 55),
               for (int i = 0; i < _committees.length; i++) ...[
                 _CommitteeCard(
@@ -105,14 +94,10 @@ class CommitteesSection extends StatelessWidget {
                   arrowSize: 72,
                   borderRadius: 14,
                   onTap: () {
-                    _showCommitteeSheet(
-                      context,
-                      _committees[i],
-                    );
+                    _showCommitteeSheet(context, _committees[i]);
                   },
                 ),
-                if (i != _committees.length - 1)
-                  const SizedBox(height: 30),
+                if (i != _committees.length - 1) const SizedBox(height: 30),
               ],
               const SizedBox(height: 100),
               _buildDivider(),
@@ -131,19 +116,11 @@ class CommitteesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.fromLTRB(
-        60,
-        80,
-        60,
-        80,
-      ),
+      padding: const EdgeInsets.fromLTRB(60, 80, 60, 80),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionLabel(
-            fontSize: 21,
-            letterSpacing: 9,
-          ),
+          _buildSectionLabel(fontSize: 21, letterSpacing: 9),
           const SizedBox(height: 45),
           for (int i = 0; i < _committees.length; i++) ...[
             _CommitteeCard(
@@ -155,14 +132,10 @@ class CommitteesSection extends StatelessWidget {
               arrowSize: 60,
               borderRadius: 14,
               onTap: () {
-                _showCommitteeSheet(
-                  context,
-                  _committees[i],
-                );
+                _showCommitteeSheet(context, _committees[i]);
               },
             ),
-            if (i != _committees.length - 1)
-              const SizedBox(height: 25),
+            if (i != _committees.length - 1) const SizedBox(height: 25),
           ],
           const SizedBox(height: 80),
           _buildDivider(),
@@ -179,19 +152,11 @@ class CommitteesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.fromLTRB(
-        24,
-        55,
-        24,
-        55,
-      ),
+      padding: const EdgeInsets.fromLTRB(24, 55, 24, 55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionLabel(
-            fontSize: 11,
-            letterSpacing: 5,
-          ),
+          _buildSectionLabel(fontSize: 11, letterSpacing: 5),
           const SizedBox(height: 32),
           for (int i = 0; i < _committees.length; i++) ...[
             _CommitteeCard(
@@ -204,14 +169,10 @@ class CommitteesSection extends StatelessWidget {
               borderRadius: 14,
               mobile: true,
               onTap: () {
-                _showCommitteeSheet(
-                  context,
-                  _committees[i],
-                );
+                _showCommitteeSheet(context, _committees[i]);
               },
             ),
-            if (i != _committees.length - 1)
-              const SizedBox(height: 18),
+            if (i != _committees.length - 1) const SizedBox(height: 18),
           ],
           const SizedBox(height: 55),
           _buildDivider(),
@@ -224,10 +185,7 @@ class CommitteesSection extends StatelessWidget {
   // MODAL BOTTOM SHEET
   // ============================================================
 
-  void _showCommitteeSheet(
-    BuildContext context,
-    _CommitteeData committee,
-  ) {
+  void _showCommitteeSheet(BuildContext context, _CommitteeData committee) {
     showModalBottomSheet(
       context: context,
 
@@ -242,9 +200,7 @@ class CommitteesSection extends StatelessWidget {
       barrierColor: Colors.black.withValues(alpha: 0.72),
 
       builder: (context) {
-        return _CommitteeBottomSheet(
-          committee: committee,
-        );
+        return _CommitteeBottomSheet(committee: committee);
       },
     );
   }
@@ -350,16 +306,10 @@ class _CommitteeCardState extends State<_CommitteeCard> {
           curve: Curves.easeOut,
           width: double.infinity,
           height: widget.height,
-          transform: Matrix4.translationValues(
-            _hovering ? 4 : 0,
-            0,
-            0,
-          ),
+          transform: Matrix4.translationValues(_hovering ? 4 : 0, 0, 0),
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(
-              widget.borderRadius,
-            ),
+            borderRadius: BorderRadius.circular(widget.borderRadius),
             border: Border.all(
               color: _hovering
                   ? const Color(0xFFC9A86A)
@@ -369,9 +319,7 @@ class _CommitteeCardState extends State<_CommitteeCard> {
             boxShadow: _hovering
                 ? [
                     BoxShadow(
-                      color: const Color(
-                        0xFFC9A86A,
-                      ).withValues(alpha: 0.10),
+                      color: const Color(0xFFC9A86A).withValues(alpha: 0.10),
                       blurRadius: 18,
                       spreadRadius: 1,
                     ),
@@ -379,30 +327,24 @@ class _CommitteeCardState extends State<_CommitteeCard> {
                 : const [],
           ),
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: widget.horizontalPadding,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.committee.abbreviation,
-                        style: GoogleFonts.ibmPlexSerif(
+                        style: GoogleFonts.prata(
                           color: const Color(0xFFC9A86A),
                           fontSize: widget.abbreviationSize,
                           fontWeight: FontWeight.w700,
                           height: 1,
                         ),
                       ),
-                      SizedBox(
-                        height: widget.mobile ? 10 : 16,
-                      ),
+                      SizedBox(height: widget.mobile ? 10 : 16),
                       Text(
                         widget.committee.name,
                         maxLines: widget.mobile ? 2 : 1,
@@ -417,16 +359,10 @@ class _CommitteeCardState extends State<_CommitteeCard> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  width: widget.mobile ? 12 : 30,
-                ),
+                SizedBox(width: widget.mobile ? 12 : 30),
                 AnimatedSlide(
-                  duration: const Duration(
-                    milliseconds: 200,
-                  ),
-                  offset: _hovering
-                      ? const Offset(0.15, 0)
-                      : Offset.zero,
+                  duration: const Duration(milliseconds: 200),
+                  offset: _hovering ? const Offset(0.15, 0) : Offset.zero,
                   child: Icon(
                     Icons.chevron_right_rounded,
                     color: Colors.white,
@@ -447,9 +383,7 @@ class _CommitteeCardState extends State<_CommitteeCard> {
 // ============================================================
 
 class _CommitteeBottomSheet extends StatelessWidget {
-  const _CommitteeBottomSheet({
-    required this.committee,
-  });
+  const _CommitteeBottomSheet({required this.committee});
 
   final _CommitteeData committee;
 
@@ -458,8 +392,7 @@ class _CommitteeBottomSheet extends StatelessWidget {
     final screen = MediaQuery.sizeOf(context);
 
     final bool mobile = screen.width < 700;
-    final bool tablet =
-        screen.width >= 700 && screen.width < 1200;
+    final bool tablet = screen.width >= 700 && screen.width < 1200;
 
     final double horizontalPadding = mobile
         ? 24
@@ -498,18 +431,9 @@ class _CommitteeBottomSheet extends StatelessWidget {
           color: Color(0xFF1E1E1E),
 
           border: Border(
-            top: BorderSide(
-              color: Color(0xFF5C1A1B),
-              width: 3,
-            ),
-            left: BorderSide(
-              color: Color(0xFF5C1A1B),
-              width: 3,
-            ),
-            right: BorderSide(
-              color: Color(0xFF5C1A1B),
-              width: 3,
-            ),
+            top: BorderSide(color: Color(0xFF5C1A1B), width: 3),
+            left: BorderSide(color: Color(0xFF5C1A1B), width: 3),
+            right: BorderSide(color: Color(0xFF5C1A1B), width: 3),
           ),
 
           borderRadius: BorderRadius.only(
@@ -526,74 +450,56 @@ class _CommitteeBottomSheet extends StatelessWidget {
           ),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 1300,
-              ),
+              constraints: const BoxConstraints(maxWidth: 1300),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ==========================================
                   // DRAG HANDLE
                   // ==========================================
-
                   Center(
                     child: Container(
                       width: 55,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFC9A86A)
-                            .withValues(alpha: 0.55),
-                        borderRadius:
-                            BorderRadius.circular(100),
+                        color: const Color(0xFFC9A86A).withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(100),
                       ),
                     ),
                   ),
 
-                  SizedBox(
-                    height: mobile ? 28 : 38,
-                  ),
+                  SizedBox(height: mobile ? 28 : 38),
 
                   // ==========================================
                   // TOP ROW
                   // ==========================================
-
                   Row(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               committee.abbreviation,
-                              style:
-                                  GoogleFonts.ibmPlexSerif(
-                                    color: const Color(
-                                      0xFFC9A86A,
-                                    ),
-                                    fontSize:
-                                        abbreviationSize,
-                                    fontWeight:
-                                        FontWeight.w700,
-                                    height: 1,
-                                  ),
+                              style: GoogleFonts.prata(
+                                color: const Color(0xFFC9A86A),
+                                fontSize: abbreviationSize,
+                                fontWeight: FontWeight.w700,
+                                height: 1,
+                              ),
                             ),
 
                             const SizedBox(height: 12),
 
                             Text(
                               committee.name,
-                              style:
-                                  GoogleFonts.ibmPlexSans(
-                                    color: Colors.white,
-                                    fontSize: nameSize,
-                                    fontWeight:
-                                        FontWeight.w400,
-                                    height: 1.3,
-                                  ),
+                              style: GoogleFonts.ibmPlexSans(
+                                color: Colors.white,
+                                fontSize: nameSize,
+                                fontWeight: FontWeight.w400,
+                                height: 1.3,
+                              ),
                             ),
                           ],
                         ),
@@ -609,28 +515,22 @@ class _CommitteeBottomSheet extends StatelessWidget {
                     ],
                   ),
 
-                  SizedBox(
-                    height: mobile ? 30 : 40,
-                  ),
+                  SizedBox(height: mobile ? 30 : 40),
 
                   // ==========================================
                   // DIVIDER
                   // ==========================================
-
                   Container(
                     width: double.infinity,
                     height: 1,
                     color: const Color(0xFF5C1A1B),
                   ),
 
-                  SizedBox(
-                    height: mobile ? 28 : 36,
-                  ),
+                  SizedBox(height: mobile ? 28 : 36),
 
                   // ==========================================
                   // DESCRIPTION
                   // ==========================================
-
                   Text(
                     committee.description,
                     style: GoogleFonts.ibmPlexSans(
@@ -641,14 +541,11 @@ class _CommitteeBottomSheet extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(
-                    height: mobile ? 32 : 42,
-                  ),
+                  SizedBox(height: mobile ? 32 : 42),
 
                   // ==========================================
                   // AGENDA
                   // ==========================================
-
                   Text(
                     'AGENDA',
                     style: GoogleFonts.ibmPlexSans(
@@ -663,14 +560,10 @@ class _CommitteeBottomSheet extends StatelessWidget {
 
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(
-                      mobile ? 20 : 26,
-                    ),
+                    padding: EdgeInsets.all(mobile ? 20 : 26),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0B132B),
-                      borderRadius: BorderRadius.circular(
-                        14,
-                      ),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: const Color(0xFF5C1A1B),
                         width: 2,
@@ -678,7 +571,7 @@ class _CommitteeBottomSheet extends StatelessWidget {
                     ),
                     child: Text(
                       committee.agenda,
-                      style: GoogleFonts.ibmPlexSerif(
+                      style: GoogleFonts.prata(
                         color: const Color(0xFFC9A86A),
                         fontSize: mobile ? 18 : 22,
                         fontWeight: FontWeight.w600,
@@ -701,9 +594,7 @@ class _CommitteeBottomSheet extends StatelessWidget {
 // ============================================================
 
 class _CloseButton extends StatefulWidget {
-  const _CloseButton({
-    required this.onTap,
-  });
+  const _CloseButton({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -731,26 +622,15 @@ class _CloseButtonState extends State<_CloseButton> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(
-            milliseconds: 150,
-          ),
+          duration: const Duration(milliseconds: 150),
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: _hovering
-                ? const Color(0xFF5C1A1B)
-                : Colors.transparent,
+            color: _hovering ? const Color(0xFF5C1A1B) : Colors.transparent,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFF5C1A1B),
-              width: 2,
-            ),
+            border: Border.all(color: const Color(0xFF5C1A1B), width: 2),
           ),
-          child: const Icon(
-            Icons.close_rounded,
-            color: Colors.white,
-            size: 24,
-          ),
+          child: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
         ),
       ),
     );
