@@ -1,0 +1,25 @@
+{
+  "name": "Jain PU Model United Nations 2026",
+  "short_name": "JPUMUN 2026",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0B132B",
+  "theme_color": "#C9A86A",
+  "description": "Jain PU Model United Nations 2026",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
