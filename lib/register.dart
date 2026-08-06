@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,6 +12,12 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+
+  static const String _registrationApiUrl =
+      'https://script.google.com/macros/s/AKfycby8iL2S4uzaoyvTi-NIVr-hNe4a8-SqcfcpE7J5vcK6n9pLW0Dtxik9K7vP22ar1XF4/exec';
+
+  bool _isSubmitting = false;
+  String? _registrationId;
 
   // ============================================================
   // CONTROLLERS
@@ -146,98 +154,109 @@ class _RegisterPageState extends State<RegisterPage> {
   // PROCEED
   // ============================================================
 
-  void _proceed() {
+  Future<void> _proceed() async {
+    if (_isSubmitting) return;
+
     FocusScope.of(context).unfocus();
 
-    final valid =
-        _formKey.currentState?.validate() ?? false;
-
-    // ----------------------------------------------------------
-    // Committee validation
-    // ----------------------------------------------------------
+    final valid = _formKey.currentState?.validate() ?? false;
 
     if (_committeePreference1 == null ||
         _committeePreference2 == null) {
-      _showMessage(
-        'Please select both committee preferences.',
-      );
-
+      _showMessage('Please select both committee preferences.');
       return;
     }
 
-    if (_committeePreference1 ==
-        _committeePreference2) {
+    if (_committeePreference1 == _committeePreference2) {
       _showMessage(
         'Committee Preference 1 and 2 must be different.',
       );
-
       return;
     }
 
-    // ----------------------------------------------------------
-    // Declaration validation
-    // ----------------------------------------------------------
-
-    if (!_declaration1 ||
-        !_declaration2 ||
-        !_declaration3) {
-      setState(() {
-        _showDeclarationError = true;
-      });
-
+    if (!_declaration1 || !_declaration2 || !_declaration3) {
+      setState(() => _showDeclarationError = true);
       _showMessage(
         'Please accept all declarations before proceeding.',
       );
-
       return;
     }
 
-    if (!valid) {
-      return;
-    }
+    if (!valid) return;
 
-    // Clear any previous declaration error.
     if (_showDeclarationError) {
-      setState(() {
-        _showDeclarationError = false;
-      });
+      setState(() => _showDeclarationError = false);
     }
 
-    // ----------------------------------------------------------
-    // Form data
-    // ----------------------------------------------------------
-
-    final data = {
+    final data = <String, dynamic>{
+      'registration_type': 'individual',
       'name': _nameController.text.trim(),
       'email': _emailController.text.trim(),
       'contact': _contactController.text.trim(),
-      'institution':
-          _institutionController.text.trim(),
+      'institution': _institutionController.text.trim(),
       'class': _selectedClass,
-      'mun_experience':
-          _munExperienceController.text.trim(),
-      'committee_preference_1':
-          _committeePreference1,
-      'committee_preference_2':
-          _committeePreference2,
-
-      // Optional:
-      // Keeping these in the payload makes it explicit that the
-      // declarations were accepted.
-      'declaration_information_accurate':
-          _declaration1,
-      'declaration_code_of_conduct':
-          _declaration2,
-      'declaration_allocation_policy':
-          _declaration3,
+      'mun_experience': _munExperienceController.text.trim(),
+      'committee_preference_1': _committeePreference1,
+      'committee_preference_2': _committeePreference2,
+      'declaration_information_accurate': _declaration1,
+      'declaration_code_of_conduct': _declaration2,
+      'declaration_allocation_policy': _declaration3,
     };
 
-    debugPrint(data.toString());
+    setState(() => _isSubmitting = true);
 
-    // TODO:
-    // Submit data to Google Sheets here.
-    //
-    // Once successful, navigate to payment.
+    try {
+      final response = await http.post(
+        Uri.parse(_registrationApiUrl),
+        headers: const {
+          // text/plain keeps this request "simple" in browsers and avoids
+          // an unnecessary CORS preflight. Apps Script still receives the
+          // body as JSON text and parses it normally.
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('Server returned HTTP ${response.statusCode}.');
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw Exception('Unexpected response from registration server.');
+      }
+
+      if (decoded['success'] != true) {
+        throw Exception(
+          decoded['message']?.toString() ?? 'Registration failed.',
+        );
+      }
+
+      final registrationId =
+          decoded['registration_id']?.toString();
+
+      if (!mounted) return;
+
+      setState(() => _registrationId = registrationId);
+
+      _showMessage(
+        registrationId == null
+            ? 'Registration submitted successfully.'
+            : 'Registration submitted successfully. ID: $registrationId',
+      );
+
+      // Payment navigation can be added here once the payment route/page
+      // is ready. The registration has already been safely stored in Sheets.
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(
+        'Could not submit registration. Please try again.\n$error',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   // ============================================================
@@ -575,8 +594,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           Center(
                             child: _ProceedButton(
-                              onTap: _proceed,
+                              onTap: _isSubmitting ? null : _proceed,
                               isMobile: isMobile,
+                              isLoading: _isSubmitting,
                             ),
                           ),
 
@@ -1289,10 +1309,12 @@ class _ProceedButton extends StatefulWidget {
   const _ProceedButton({
     required this.onTap,
     required this.isMobile,
+    required this.isLoading,
   });
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool isMobile;
+  final bool isLoading;
 
   @override
   State<_ProceedButton> createState() =>
@@ -1306,11 +1328,13 @@ class _ProceedButtonState
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
+      cursor: widget.isLoading
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
       onEnter: (_) {
-        setState(() {
-          _hovering = true;
-        });
+        if (!widget.isLoading) {
+          setState(() => _hovering = true);
+        }
       },
       onExit: (_) {
         setState(() {
@@ -1318,7 +1342,7 @@ class _ProceedButtonState
         });
       },
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: widget.isLoading ? null : widget.onTap,
         child: AnimatedContainer(
           duration:
               const Duration(milliseconds: 180),
@@ -1349,18 +1373,23 @@ class _ProceedButtonState
               ),
             ],
           ),
-          child: Text(
-            'PROCEED',
-            style:
-                GoogleFonts.ibmPlexSerif(
-              color:
-                  const Color(0xFF0B132B),
-              fontSize:
-                  widget.isMobile ? 23 : 32,
-              fontWeight:
-                  FontWeight.w700,
-            ),
-          ),
+          child: widget.isLoading
+              ? SizedBox(
+                  width: widget.isMobile ? 26 : 32,
+                  height: widget.isMobile ? 26 : 32,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: Color(0xFF0B132B),
+                  ),
+                )
+              : Text(
+                  'PROCEED',
+                  style: GoogleFonts.ibmPlexSerif(
+                    color: const Color(0xFF0B132B),
+                    fontSize: widget.isMobile ? 23 : 32,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
         ),
       ),
     );

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterInstitute extends StatefulWidget {
   const RegisterInstitute({super.key});
@@ -11,6 +13,12 @@ class RegisterInstitute extends StatefulWidget {
 
 class _RegisterInstituteState extends State<RegisterInstitute> {
   final _formKey = GlobalKey<FormState>();
+
+  static const String _registrationApiUrl =
+      'https://script.google.com/macros/s/AKfycby8iL2S4uzaoyvTi-NIVr-hNe4a8-SqcfcpE7J5vcK6n9pLW0Dtxik9K7vP22ar1XF4/exec';
+
+  bool _isSubmitting = false;
+  String? _registrationId;
 
   // ============================================================
   // FORM A — INSTITUTIONAL REGISTRATION
@@ -192,15 +200,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // PROCEED
   // ============================================================
 
-  void _proceed() {
+  Future<void> _proceed() async {
+    if (_isSubmitting) return;
+
     FocusScope.of(context).unfocus();
 
-    final valid =
-        _formKey.currentState?.validate() ?? false;
-
-    // ----------------------------------------------------------
-    // Validate delegate committee preferences
-    // ----------------------------------------------------------
+    final valid = _formKey.currentState?.validate() ?? false;
 
     for (int i = 0; i < _delegates.length; i++) {
       final delegate = _delegates[i];
@@ -210,7 +215,6 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         _showMessage(
           'Please select both committee preferences for Delegate ${i + 1}.',
         );
-
         return;
       }
 
@@ -219,115 +223,118 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         _showMessage(
           'Delegate ${i + 1} must select two different committee preferences.',
         );
-
         return;
       }
     }
 
-    // ----------------------------------------------------------
-    // Declaration validation
-    // ----------------------------------------------------------
-
-    if (!_declaration1 ||
-        !_declaration2 ||
-        !_declaration3) {
-      setState(() {
-        _showDeclarationError = true;
-      });
-
+    if (!_declaration1 || !_declaration2 || !_declaration3) {
+      setState(() => _showDeclarationError = true);
       _showMessage(
         'Please accept all declarations before proceeding.',
       );
-
       return;
     }
 
-    if (!valid) {
-      return;
-    }
+    if (!valid) return;
 
     if (_showDeclarationError) {
-      setState(() {
-        _showDeclarationError = false;
-      });
+      setState(() => _showDeclarationError = false);
     }
 
-    // ----------------------------------------------------------
-    // Final submission data
-    // ----------------------------------------------------------
-
-    final data = {
+    final data = <String, dynamic>{
       'registration_type': 'institutional',
-
-      'institution_name':
-          _institutionController.text.trim(),
-
+      'institution_name': _institutionController.text.trim(),
       'faculty_advisor': {
-        'name':
-            _facultyAdvisorNameController.text.trim(),
-        'contact':
-            _facultyAdvisorContactController.text.trim(),
+        'name': _facultyAdvisorNameController.text.trim(),
+        'contact': _facultyAdvisorContactController.text.trim(),
       },
-
       'head_delegate': {
-        'name':
-            _headDelegateNameController.text.trim(),
-        'contact':
-            _headDelegateContactController.text.trim(),
+        'name': _headDelegateNameController.text.trim(),
+        'contact': _headDelegateContactController.text.trim(),
       },
-
-      'approximate_delegation_size':
-          int.tryParse(
-            _delegationSizeController.text.trim(),
-          ),
-
+      'approximate_delegation_size': int.tryParse(
+        _delegationSizeController.text.trim(),
+      ),
       'delegates': _delegates
           .map(
             (delegate) => {
-              'full_name':
-                  delegate.nameController.text.trim(),
-              'email':
-                  delegate.emailController.text.trim(),
-              'contact':
-                  delegate.contactController.text.trim(),
-              'mun_experience': delegate
-                  .munExperienceController.text
-                  .trim(),
+              'full_name': delegate.nameController.text.trim(),
+              'email': delegate.emailController.text.trim(),
+              'contact': delegate.contactController.text.trim(),
+              'mun_experience':
+                  delegate.munExperienceController.text.trim(),
               'committee_preference_1':
                   delegate.committeePreference1,
               'committee_preference_2':
                   delegate.committeePreference2,
-              'portfolio_country_preference_1':
-                  delegate
-                      .portfolioPreference1Controller
-                      .text
-                      .trim(),
-              'portfolio_country_preference_2':
-                  delegate
-                      .portfolioPreference2Controller
-                      .text
-                      .trim(),
+              'portfolio_country_preference_1': delegate
+                  .portfolioPreference1Controller.text
+                  .trim(),
+              'portfolio_country_preference_2': delegate
+                  .portfolioPreference2Controller.text
+                  .trim(),
             },
           )
           .toList(),
-
-      'declaration_information_accurate':
-          _declaration1,
-
-      'declaration_code_of_conduct':
-          _declaration2,
-
-      'declaration_allocation_policy':
-          _declaration3,
+      'declaration_information_accurate': _declaration1,
+      'declaration_code_of_conduct': _declaration2,
+      'declaration_allocation_policy': _declaration3,
     };
 
-    debugPrint(data.toString());
+    setState(() => _isSubmitting = true);
 
-    // TODO:
-    // Submit institutional registration to Google Sheets.
-    //
-    // After successful submission:
-    // navigate to payment.
+    try {
+      final response = await http.post(
+        Uri.parse(_registrationApiUrl),
+        headers: const {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('Server returned HTTP ${response.statusCode}.');
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw Exception('Unexpected response from registration server.');
+      }
+
+      if (decoded['success'] != true) {
+        throw Exception(
+          decoded['message']?.toString() ?? 'Registration failed.',
+        );
+      }
+
+      final registrationId =
+          decoded['registration_id']?.toString();
+      final delegatesSaved = decoded['delegates_saved'];
+
+      if (!mounted) return;
+
+      setState(() => _registrationId = registrationId);
+
+      _showMessage(
+        registrationId == null
+            ? 'Institutional registration submitted successfully.'
+            : 'Institutional registration submitted successfully. '
+                'ID: $registrationId'
+                '${delegatesSaved == null ? '' : ' • Delegates saved: $delegatesSaved'}',
+      );
+
+      // Payment navigation can be added here once the payment route/page
+      // is ready. Both the institution and delegate rows are now in Sheets.
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(
+        'Could not submit registration. Please try again.\n$error',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   // ============================================================
@@ -500,7 +507,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
                           _AddDelegateButton(
                             onTap: _addDelegate,
-                            isMobile: isMobile,
+                            isMobile: isMobile, isLoading: false,
                           ),
 
                           SizedBox(
@@ -531,8 +538,9 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
                           Center(
                             child: _ProceedButton(
-                              onTap: _proceed,
+                              onTap: _isSubmitting ? null : _proceed,
                               isMobile: isMobile,
+                              isLoading: _isSubmitting,
                             ),
                           ),
 
@@ -1706,10 +1714,12 @@ class _AddDelegateButton extends StatefulWidget {
   const _AddDelegateButton({
     required this.onTap,
     required this.isMobile,
+    required this.isLoading,
   });
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool isMobile;
+  final bool isLoading;
 
   @override
   State<_AddDelegateButton> createState() =>
@@ -1725,11 +1735,13 @@ class _AddDelegateButtonState
     const gold = Color(0xFFC9A86A);
 
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
+      cursor: widget.isLoading
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
       onEnter: (_) {
-        setState(() {
-          _hovering = true;
-        });
+        if (!widget.isLoading) {
+          setState(() => _hovering = true);
+        }
       },
       onExit: (_) {
         setState(() {
@@ -1737,7 +1749,7 @@ class _AddDelegateButtonState
         });
       },
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: widget.isLoading ? null : widget.onTap,
         child: AnimatedContainer(
           duration:
               const Duration(milliseconds: 160),
@@ -1795,10 +1807,12 @@ class _ProceedButton extends StatefulWidget {
   const _ProceedButton({
     required this.onTap,
     required this.isMobile,
+    required this.isLoading,
   });
 
-  final VoidCallback onTap;
+  final Future<void> Function()? onTap;
   final bool isMobile;
+  final bool isLoading;
 
   @override
   State<_ProceedButton> createState() =>
@@ -1855,18 +1869,23 @@ class _ProceedButtonState
               ),
             ],
           ),
-          child: Text(
-            'PROCEED',
-            style:
-                GoogleFonts.ibmPlexSerif(
-              color:
-                  const Color(0xFF0B132B),
-              fontSize:
-                  widget.isMobile ? 23 : 32,
-              fontWeight:
-                  FontWeight.w700,
-            ),
-          ),
+          child: widget.isLoading
+              ? SizedBox(
+                  width: widget.isMobile ? 26 : 32,
+                  height: widget.isMobile ? 26 : 32,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: Color(0xFF0B132B),
+                  ),
+                )
+              : Text(
+                  'PROCEED',
+                  style: GoogleFonts.ibmPlexSerif(
+                    color: const Color(0xFF0B132B),
+                    fontSize: widget.isMobile ? 23 : 32,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
         ),
       ),
     );
