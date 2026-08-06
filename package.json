@@ -1,7 +1,0 @@
-{
-  "name": "jpumun_website",
-  "version": "1.0.0",
-  "scripts": {
-    "vercel-build": "flutter build web --release"
-  }
-}
