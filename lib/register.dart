@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class RegisterIndividualForm extends StatefulWidget {
-  const RegisterIndividualForm({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<RegisterIndividualForm> createState() => _RegisterIndividualFormState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
   // ============================================================
@@ -45,17 +45,28 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
   static const Color red = Color(0xFF5C1A1B);
   static const Color white = Color(0xFFF9F5F4);
 
-  static const List<String> _classes = ['Grade 11', 'Grade 12'];
+  static const List<String> _classes = [
+    'PUC I',
+    'PUC II',
+    'Grade 11',
+    'Grade 12',
+    'Undergraduate',
+    'Other',
+  ];
 
   static const List<_Committee> _committees = [
-    _Committee(value: 'CCC', label: 'Continuous Crisis Committee (CCC)'),
+    _Committee(
+      value: 'CCC',
+      label: 'Continuous Crisis Committee (CCC)',
+    ),
     _Committee(
       value: 'AIPPM',
       label: 'All India Political Parties Meet (AIPPM)',
     ),
     _Committee(
       value: 'DISEC',
-      label: 'Disarmament and International Security Committee (DISEC)',
+      label:
+          'Disarmament and International Security Committee (DISEC)',
     ),
   ];
 
@@ -91,7 +102,9 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
       return 'Email address is required';
     }
 
-    final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    final regex = RegExp(
+      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+    );
 
     if (!regex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
@@ -105,7 +118,10 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
       return 'Contact number is required';
     }
 
-    final cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    final cleaned = value.replaceAll(
+      RegExp(r'[\s\-\(\)]'),
+      '',
+    );
 
     if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(cleaned)) {
       return 'Enter a valid contact number';
@@ -119,7 +135,9 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
   // ============================================================
 
   void _updateDeclarationError() {
-    if (_declaration1 && _declaration2 && _declaration3) {
+    if (_declaration1 &&
+        _declaration2 &&
+        _declaration3) {
       _showDeclarationError = false;
     }
   }
@@ -131,20 +149,27 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
   void _proceed() {
     FocusScope.of(context).unfocus();
 
-    final valid = _formKey.currentState?.validate() ?? false;
+    final valid =
+        _formKey.currentState?.validate() ?? false;
 
     // ----------------------------------------------------------
     // Committee validation
     // ----------------------------------------------------------
 
-    if (_committeePreference1 == null || _committeePreference2 == null) {
-      _showMessage('Please select both committee preferences.');
+    if (_committeePreference1 == null ||
+        _committeePreference2 == null) {
+      _showMessage(
+        'Please select both committee preferences.',
+      );
 
       return;
     }
 
-    if (_committeePreference1 == _committeePreference2) {
-      _showMessage('Committee Preference 1 and 2 must be different.');
+    if (_committeePreference1 ==
+        _committeePreference2) {
+      _showMessage(
+        'Committee Preference 1 and 2 must be different.',
+      );
 
       return;
     }
@@ -153,12 +178,16 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     // Declaration validation
     // ----------------------------------------------------------
 
-    if (!_declaration1 || !_declaration2 || !_declaration3) {
+    if (!_declaration1 ||
+        !_declaration2 ||
+        !_declaration3) {
       setState(() {
         _showDeclarationError = true;
       });
 
-      _showMessage('Please accept all declarations before proceeding.');
+      _showMessage(
+        'Please accept all declarations before proceeding.',
+      );
 
       return;
     }
@@ -182,18 +211,25 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
       'name': _nameController.text.trim(),
       'email': _emailController.text.trim(),
       'contact': _contactController.text.trim(),
-      'institution': _institutionController.text.trim(),
+      'institution':
+          _institutionController.text.trim(),
       'class': _selectedClass,
-      'mun_experience': _munExperienceController.text.trim(),
-      'committee_preference_1': _committeePreference1,
-      'committee_preference_2': _committeePreference2,
+      'mun_experience':
+          _munExperienceController.text.trim(),
+      'committee_preference_1':
+          _committeePreference1,
+      'committee_preference_2':
+          _committeePreference2,
 
       // Optional:
       // Keeping these in the payload makes it explicit that the
       // declarations were accepted.
-      'declaration_information_accurate': _declaration1,
-      'declaration_code_of_conduct': _declaration2,
-      'declaration_allocation_policy': _declaration3,
+      'declaration_information_accurate':
+          _declaration1,
+      'declaration_code_of_conduct':
+          _declaration2,
+      'declaration_allocation_policy':
+          _declaration3,
     };
 
     debugPrint(data.toString());
@@ -213,7 +249,12 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
       SnackBar(
         backgroundColor: fieldBackground,
         behavior: SnackBarBehavior.floating,
-        content: Text(message, style: GoogleFonts.ibmPlexSans(color: white)),
+        content: Text(
+          message,
+          style: GoogleFonts.ibmPlexSans(
+            color: white,
+          ),
+        ),
       ),
     );
   }
@@ -232,19 +273,23 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
             final width = constraints.maxWidth;
 
             final isMobile = width < 650;
-            final isTablet = width >= 650 && width < 1050;
+            final isTablet =
+                width >= 650 && width < 1050;
 
             final horizontalPadding = isMobile
                 ? 24.0
                 : isTablet
-                ? 50.0
-                : 80.0;
+                    ? 50.0
+                    : 80.0;
 
             return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1290),
+                  constraints: const BoxConstraints(
+                    maxWidth: 1290,
+                  ),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
                       horizontalPadding,
@@ -255,29 +300,44 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                     child: Form(
                       key: _formKey,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
                           // ====================================
                           // HEADER
                           // ====================================
-                          _buildHeader(isMobile: isMobile, isTablet: isTablet),
 
-                          SizedBox(height: isMobile ? 50 : 85),
+                          _buildHeader(
+                            isMobile: isMobile,
+                            isTablet: isTablet,
+                          ),
+
+                          SizedBox(
+                            height: isMobile ? 50 : 85,
+                          ),
 
                           // ====================================
                           // INTRODUCTION
                           // ====================================
-                          _buildIntroduction(isMobile: isMobile),
 
-                          SizedBox(height: isMobile ? 45 : 65),
+                          _buildIntroduction(
+                            isMobile: isMobile,
+                          ),
+
+                          SizedBox(
+                            height: isMobile ? 45 : 65,
+                          ),
 
                           _buildDivider(),
 
-                          SizedBox(height: isMobile ? 45 : 65),
+                          SizedBox(
+                            height: isMobile ? 45 : 65,
+                          ),
 
                           // ====================================
                           // FULL NAME
                           // ====================================
+
                           _FormFieldBlock(
                             label: 'Delegate Full Name',
                             child: _buildTextField(
@@ -292,14 +352,20 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                           // ====================================
                           // EMAIL + CONTACT
                           // ====================================
+
                           if (isMobile) ...[
                             _FormFieldBlock(
                               label: 'Email Address',
                               child: _buildTextField(
-                                controller: _emailController,
-                                hint: 'example@email.com',
-                                keyboardType: TextInputType.emailAddress,
-                                validator: _emailValidator,
+                                controller:
+                                    _emailController,
+                                hint:
+                                    'example@email.com',
+                                keyboardType:
+                                    TextInputType
+                                        .emailAddress,
+                                validator:
+                                    _emailValidator,
                               ),
                             ),
 
@@ -308,24 +374,36 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                             _FormFieldBlock(
                               label: 'Contact Number',
                               child: _buildTextField(
-                                controller: _contactController,
-                                hint: '+91 XXXXX XXXXX',
-                                keyboardType: TextInputType.phone,
-                                validator: _phoneValidator,
+                                controller:
+                                    _contactController,
+                                hint:
+                                    '+91 XXXXX XXXXX',
+                                keyboardType:
+                                    TextInputType.phone,
+                                validator:
+                                    _phoneValidator,
                               ),
                             ),
                           ] else
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 Expanded(
                                   child: _FormFieldBlock(
-                                    label: 'Email Address',
-                                    child: _buildTextField(
-                                      controller: _emailController,
-                                      hint: 'example@email.com',
-                                      keyboardType: TextInputType.emailAddress,
-                                      validator: _emailValidator,
+                                    label:
+                                        'Email Address',
+                                    child:
+                                        _buildTextField(
+                                      controller:
+                                          _emailController,
+                                      hint:
+                                          'example@email.com',
+                                      keyboardType:
+                                          TextInputType
+                                              .emailAddress,
+                                      validator:
+                                          _emailValidator,
                                     ),
                                   ),
                                 ),
@@ -334,12 +412,19 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
 
                                 Expanded(
                                   child: _FormFieldBlock(
-                                    label: 'Contact Number',
-                                    child: _buildTextField(
-                                      controller: _contactController,
-                                      hint: '+91 XXXXX XXXXX',
-                                      keyboardType: TextInputType.phone,
-                                      validator: _phoneValidator,
+                                    label:
+                                        'Contact Number',
+                                    child:
+                                        _buildTextField(
+                                      controller:
+                                          _contactController,
+                                      hint:
+                                          '+91 XXXXX XXXXX',
+                                      keyboardType:
+                                          TextInputType
+                                              .phone,
+                                      validator:
+                                          _phoneValidator,
                                     ),
                                   ),
                                 ),
@@ -351,12 +436,15 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                           // ====================================
                           // INSTITUTION + CLASS
                           // ====================================
+
                           if (isMobile) ...[
                             _FormFieldBlock(
                               label: 'Institution Name',
                               child: _buildTextField(
-                                controller: _institutionController,
-                                hint: 'Enter institution name',
+                                controller:
+                                    _institutionController,
+                                hint:
+                                    'Enter institution name',
                                 validator: _required,
                               ),
                             ),
@@ -365,20 +453,27 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
 
                             _FormFieldBlock(
                               label: 'Class',
-                              child: _buildClassDropdown(),
+                              child:
+                                  _buildClassDropdown(),
                             ),
                           ] else
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 Expanded(
                                   flex: 3,
                                   child: _FormFieldBlock(
-                                    label: 'Institution Name',
-                                    child: _buildTextField(
-                                      controller: _institutionController,
-                                      hint: 'Enter institution name',
-                                      validator: _required,
+                                    label:
+                                        'Institution Name',
+                                    child:
+                                        _buildTextField(
+                                      controller:
+                                          _institutionController,
+                                      hint:
+                                          'Enter institution name',
+                                      validator:
+                                          _required,
                                     ),
                                   ),
                                 ),
@@ -389,7 +484,8 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                                   flex: 2,
                                   child: _FormFieldBlock(
                                     label: 'Class',
-                                    child: _buildClassDropdown(),
+                                    child:
+                                        _buildClassDropdown(),
                                   ),
                                 ),
                               ],
@@ -400,60 +496,83 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                           // ====================================
                           // MUN EXPERIENCE
                           // ====================================
+
                           _FormFieldBlock(
-                            label: 'MUN Experience (if any)',
+                            label:
+                                'MUN Experience (if any)',
                             child: _buildTextField(
-                              controller: _munExperienceController,
+                              controller:
+                                  _munExperienceController,
                               hint:
                                   'Tell us about your previous MUN experience',
                               maxLines: 5,
                             ),
                           ),
 
-                          SizedBox(height: isMobile ? 50 : 65),
+                          SizedBox(
+                            height: isMobile ? 50 : 65,
+                          ),
 
                           // ====================================
                           // COMMITTEE PREFERENCE 1
                           // ====================================
+
                           _buildCommitteeSection(
-                            title: 'Committee Preference 01',
-                            value: _committeePreference1,
+                            title:
+                                'Committee Preference 01',
+                            value:
+                                _committeePreference1,
                             onChanged: (value) {
                               setState(() {
-                                _committeePreference1 = value;
+                                _committeePreference1 =
+                                    value;
                               });
                             },
                             isMobile: isMobile,
                           ),
 
-                          SizedBox(height: isMobile ? 50 : 70),
+                          SizedBox(
+                            height: isMobile ? 50 : 70,
+                          ),
 
                           // ====================================
                           // COMMITTEE PREFERENCE 2
                           // ====================================
+
                           _buildCommitteeSection(
-                            title: 'Committee Preference 02',
-                            value: _committeePreference2,
+                            title:
+                                'Committee Preference 02',
+                            value:
+                                _committeePreference2,
                             onChanged: (value) {
                               setState(() {
-                                _committeePreference2 = value;
+                                _committeePreference2 =
+                                    value;
                               });
                             },
                             isMobile: isMobile,
                           ),
 
-                          SizedBox(height: isMobile ? 55 : 75),
+                          SizedBox(
+                            height: isMobile ? 55 : 75,
+                          ),
 
                           // ====================================
                           // DECLARATION
                           // ====================================
-                          _buildDeclaration(isMobile: isMobile),
 
-                          SizedBox(height: isMobile ? 55 : 80),
+                          _buildDeclaration(
+                            isMobile: isMobile,
+                          ),
+
+                          SizedBox(
+                            height: isMobile ? 55 : 80,
+                          ),
 
                           // ====================================
                           // PROCEED
                           // ====================================
+
                           Center(
                             child: _ProceedButton(
                               onTap: _proceed,
@@ -466,10 +585,13 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                           Center(
                             child: Text(
                               'Up Next: Payment',
-                              style: GoogleFonts.ibmPlexSans(
+                              style:
+                                  GoogleFonts.ibmPlexSans(
                                 color: gold,
-                                fontSize: isMobile ? 10 : 13,
-                                fontWeight: FontWeight.w700,
+                                fontSize:
+                                    isMobile ? 10 : 13,
+                                fontWeight:
+                                    FontWeight.w700,
                               ),
                             ),
                           ),
@@ -486,15 +608,18 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     );
   }
 
-<<<<<<< HEAD
   // ============================================================
   // HEADER
   // ============================================================
 
-  Widget _buildHeader({required bool isMobile, required bool isTablet}) {
+  Widget _buildHeader({
+    required bool isMobile,
+    required bool isTablet,
+  }) {
     if (isMobile) {
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Image.asset(
             'lib/assets/logo_text.png',
@@ -514,7 +639,12 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
                 fontSize: 22,
                 fontWeight: FontWeight.w400,
                 height: 1.25,
-                shadows: const [Shadow(color: red, blurRadius: 16.9)],
+                shadows: const [
+                  Shadow(
+                    color: red,
+                    blurRadius: 16.9,
+                  ),
+                ],
               ),
             ),
           ),
@@ -523,7 +653,8 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     }
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment:
+          CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Align(
@@ -546,7 +677,12 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
             fontSize: isTablet ? 25 : 34,
             fontWeight: FontWeight.w400,
             height: 1.2,
-            shadows: const [Shadow(color: red, blurRadius: 16.9)],
+            shadows: const [
+              Shadow(
+                color: red,
+                blurRadius: 16.9,
+              ),
+            ],
           ),
         ),
       ],
@@ -557,7 +693,9 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
   // INTRODUCTION
   // ============================================================
 
-  Widget _buildIntroduction({required bool isMobile}) {
+  Widget _buildIntroduction({
+    required bool isMobile,
+  }) {
     return Text.rich(
       TextSpan(
         children: const [
@@ -565,13 +703,21 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
             text:
                 'Jain PU Model United Nations (JPUM) is an intercollegiate Model United Nations conference that brings together students to engage in diplomacy, negotiation, and critical discussion on pressing national and international issues.\n\n',
           ),
-          TextSpan(text: 'Committees:\n'),
-          TextSpan(text: '-  AIPPM (All India Political Parties Meet)\n'),
+          TextSpan(
+            text: 'Committees:\n',
+          ),
+          TextSpan(
+            text:
+                '-  AIPPM (All India Political Parties Meet)\n',
+          ),
           TextSpan(
             text:
                 '-  DISEC (Disarmament and International Security Committee)\n',
           ),
-          TextSpan(text: '-  CCC (Continuous Crisis Committee)\n\n'),
+          TextSpan(
+            text:
+                '-  CCC (Continuous Crisis Committee)\n\n',
+          ),
           TextSpan(
             text:
                 'Registration Fee: ₹900 per delegate. In case of any queries, contact the Secretariat.\n\n',
@@ -599,7 +745,8 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     required TextEditingController controller,
     required String hint,
     String? Function(String?)? validator,
-    TextInputType keyboardType = TextInputType.text,
+    TextInputType keyboardType =
+        TextInputType.text,
     int maxLines = 1,
   }) {
     return TextFormField(
@@ -608,7 +755,10 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
       keyboardType: keyboardType,
       maxLines: maxLines,
       cursorColor: gold,
-      style: GoogleFonts.ibmPlexSans(color: white, fontSize: 17),
+      style: GoogleFonts.ibmPlexSans(
+        color: white,
+        fontSize: 17,
+      ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.ibmPlexSans(
@@ -623,9 +773,15 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
         ),
         border: _inputBorder(gold),
         enabledBorder: _inputBorder(gold),
-        focusedBorder: _inputBorder(gold, width: 2),
-        errorBorder: _inputBorder(Colors.redAccent),
-        focusedErrorBorder: _inputBorder(Colors.redAccent, width: 2),
+        focusedBorder:
+            _inputBorder(gold, width: 2),
+        errorBorder:
+            _inputBorder(Colors.redAccent),
+        focusedErrorBorder:
+            _inputBorder(
+          Colors.redAccent,
+          width: 2,
+        ),
         errorStyle: GoogleFonts.ibmPlexSans(
           color: Colors.redAccent,
           fontSize: 12,
@@ -634,10 +790,16 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     );
   }
 
-  OutlineInputBorder _inputBorder(Color color, {double width = 1}) {
+  OutlineInputBorder _inputBorder(
+    Color color, {
+    double width = 1,
+  }) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(color: color, width: width),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
+      ),
     );
   }
 
@@ -649,22 +811,36 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     return DropdownButtonFormField<String>(
       initialValue: _selectedClass,
       dropdownColor: fieldBackground,
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: white),
-      style: GoogleFonts.ibmPlexSans(color: white, fontSize: 17),
+      icon: const Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: white,
+      ),
+      style: GoogleFonts.ibmPlexSans(
+        color: white,
+        fontSize: 17,
+      ),
       decoration: InputDecoration(
         filled: true,
         fillColor: fieldBackground,
-        contentPadding: const EdgeInsets.symmetric(
+        contentPadding:
+            const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 17,
         ),
         border: _inputBorder(gold),
         enabledBorder: _inputBorder(gold),
-        focusedBorder: _inputBorder(gold, width: 2),
-        errorBorder: _inputBorder(Colors.redAccent),
+        focusedBorder:
+            _inputBorder(gold, width: 2),
+        errorBorder:
+            _inputBorder(Colors.redAccent),
       ),
       items: _classes
-          .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+          .map(
+            (value) => DropdownMenuItem(
+              value: value,
+              child: Text(value),
+            ),
+          )
           .toList(),
       onChanged: (value) {
         setState(() {
@@ -692,52 +868,82 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
     required bool isMobile,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
-        _UnderlinedLabel(text: title, fontSize: isMobile ? 20 : 28),
+        _UnderlinedLabel(
+          text: title,
+          fontSize: isMobile ? 20 : 28,
+        ),
 
         const SizedBox(height: 22),
 
-        ..._committees.map((committee) {
-          final selected = value == committee.value;
+        ..._committees.map(
+          (committee) {
+            final selected =
+                value == committee.value;
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => onChanged(committee.value),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: double.infinity,
-                constraints: const BoxConstraints(minHeight: 64),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                decoration: BoxDecoration(
-                  color: selected ? fieldBackground : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                  border: selected ? Border.all(color: gold, width: 1) : null,
-                ),
-                child: Row(
-                  children: [
-                    _RadioCircle(selected: selected),
+            return Padding(
+              padding:
+                  const EdgeInsets.only(bottom: 14),
+              child: InkWell(
+                borderRadius:
+                    BorderRadius.circular(16),
+                onTap: () =>
+                    onChanged(committee.value),
+                child: AnimatedContainer(
+                  duration:
+                      const Duration(milliseconds: 150),
+                  width: double.infinity,
+                  constraints:
+                      const BoxConstraints(
+                    minHeight: 64,
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? fieldBackground
+                        : Colors.transparent,
+                    borderRadius:
+                        BorderRadius.circular(16),
+                    border: selected
+                        ? Border.all(
+                            color: gold,
+                            width: 1,
+                          )
+                        : null,
+                  ),
+                  child: Row(
+                    children: [
+                      _RadioCircle(
+                        selected: selected,
+                      ),
 
-                    const SizedBox(width: 14),
+                      const SizedBox(width: 14),
 
-                    Expanded(
-                      child: Text(
-                        committee.label,
-                        style: GoogleFonts.ibmPlexSans(
-                          color: white,
-                          fontSize: isMobile ? 14 : 19,
-                          height: 1.35,
+                      Expanded(
+                        child: Text(
+                          committee.label,
+                          style:
+                              GoogleFonts.ibmPlexSans(
+                            color: white,
+                            fontSize:
+                                isMobile ? 14 : 19,
+                            height: 1.35,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          },
+        ),
       ],
     );
   }
@@ -746,20 +952,28 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
   // DECLARATION
   // ============================================================
 
-  Widget _buildDeclaration({required bool isMobile}) {
+  Widget _buildDeclaration({
+    required bool isMobile,
+  }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
-        _UnderlinedLabel(text: 'Declaration', fontSize: isMobile ? 20 : 28),
+        _UnderlinedLabel(
+          text: 'Declaration',
+          fontSize: isMobile ? 20 : 28,
+        ),
 
         const SizedBox(height: 28),
 
         // ------------------------------------------------------
         // Declaration 1
         // ------------------------------------------------------
+
         _DeclarationItem(
           value: _declaration1,
-          text: 'I confirm that all the information provided is accurate',
+          text:
+              'I confirm that all the information provided is accurate',
           isMobile: isMobile,
           onChanged: (value) {
             setState(() {
@@ -774,6 +988,7 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
         // ------------------------------------------------------
         // Declaration 2
         // ------------------------------------------------------
+
         _DeclarationItem(
           value: _declaration2,
           text:
@@ -792,6 +1007,7 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
         // ------------------------------------------------------
         // Declaration 3
         // ------------------------------------------------------
+
         _DeclarationItem(
           value: _declaration3,
           text:
@@ -808,11 +1024,13 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
         // ------------------------------------------------------
         // Validation message
         // ------------------------------------------------------
+
         if (_showDeclarationError) ...[
           const SizedBox(height: 16),
 
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               const Icon(
                 Icons.error_outline_rounded,
@@ -825,9 +1043,11 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
               Expanded(
                 child: Text(
                   'Please accept all declarations to continue.',
-                  style: GoogleFonts.ibmPlexSans(
+                  style:
+                      GoogleFonts.ibmPlexSans(
                     color: Colors.redAccent,
-                    fontSize: isMobile ? 12 : 14,
+                    fontSize:
+                        isMobile ? 12 : 14,
                     height: 1.4,
                   ),
                 ),
@@ -848,14 +1068,27 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
       children: [
         Transform.rotate(
           angle: 0.785398,
-          child: Container(width: 7, height: 7, color: red),
+          child: Container(
+            width: 7,
+            height: 7,
+            color: red,
+          ),
         ),
 
-        Expanded(child: Container(height: 1.5, color: red)),
+        Expanded(
+          child: Container(
+            height: 1.5,
+            color: red,
+          ),
+        ),
 
         Transform.rotate(
           angle: 0.785398,
-          child: Container(width: 7, height: 7, color: red),
+          child: Container(
+            width: 7,
+            height: 7,
+            color: red,
+          ),
         ),
       ],
     );
@@ -867,7 +1100,10 @@ class _RegisterIndividualFormState extends State<RegisterIndividualForm> {
 // ================================================================
 
 class _FormFieldBlock extends StatelessWidget {
-  const _FormFieldBlock({required this.label, required this.child});
+  const _FormFieldBlock({
+    required this.label,
+    required this.child,
+  });
 
   final String label;
   final Widget child;
@@ -875,9 +1111,12 @@ class _FormFieldBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
-        _UnderlinedLabel(text: label),
+        _UnderlinedLabel(
+          text: label,
+        ),
 
         const SizedBox(height: 12),
 
@@ -892,7 +1131,10 @@ class _FormFieldBlock extends StatelessWidget {
 // ================================================================
 
 class _UnderlinedLabel extends StatelessWidget {
-  const _UnderlinedLabel({required this.text, this.fontSize = 22});
+  const _UnderlinedLabel({
+    required this.text,
+    this.fontSize = 22,
+  });
 
   final String text;
   final double fontSize;
@@ -906,8 +1148,14 @@ class _UnderlinedLabel extends StatelessWidget {
         fontSize: fontSize,
         fontWeight: FontWeight.w400,
         decoration: TextDecoration.underline,
-        decorationColor: const Color(0xFFF9F5F4),
-        shadows: const [Shadow(color: Color(0xFF5C1A1B), blurRadius: 16.9)],
+        decorationColor:
+            const Color(0xFFF9F5F4),
+        shadows: const [
+          Shadow(
+            color: Color(0xFF5C1A1B),
+            blurRadius: 16.9,
+          ),
+        ],
       ),
     );
   }
@@ -918,7 +1166,9 @@ class _UnderlinedLabel extends StatelessWidget {
 // ================================================================
 
 class _RadioCircle extends StatelessWidget {
-  const _RadioCircle({required this.selected});
+  const _RadioCircle({
+    required this.selected,
+  });
 
   final bool selected;
 
@@ -931,7 +1181,9 @@ class _RadioCircle extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? const Color(0xFFC9A86A) : Colors.white,
+          color: selected
+              ? const Color(0xFFC9A86A)
+              : Colors.white,
           width: 2,
         ),
       ),
@@ -970,27 +1222,39 @@ class _DeclarationItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(6),
       onTap: () => onChanged(!value),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
+        padding:
+            const EdgeInsets.symmetric(
+          vertical: 2,
+        ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
+              duration:
+                  const Duration(milliseconds: 150),
               width: isMobile ? 25 : 32,
               height: isMobile ? 25 : 32,
-              margin: const EdgeInsets.only(top: 2),
+              margin:
+                  const EdgeInsets.only(top: 2),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius:
+                    BorderRadius.circular(4),
                 border: Border.all(
-                  color: value ? const Color(0xFFC9A86A) : Colors.white,
+                  color: value
+                      ? const Color(0xFFC9A86A)
+                      : Colors.white,
                   width: 2,
                 ),
-                color: value ? const Color(0xFFC9A86A) : Colors.transparent,
+                color: value
+                    ? const Color(0xFFC9A86A)
+                    : Colors.transparent,
               ),
               child: value
                   ? const Icon(
                       Icons.check_rounded,
-                      color: Color(0xFF0B132B),
+                      color:
+                          Color(0xFF0B132B),
                       size: 20,
                     )
                   : null,
@@ -1001,42 +1265,20 @@ class _DeclarationItem extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style: GoogleFonts.ibmPlexSans(
+                style:
+                    GoogleFonts.ibmPlexSans(
                   color: Colors.white,
-                  fontSize: isMobile ? 14 : 18,
+                  fontSize:
+                      isMobile ? 14 : 18,
                   height: 1.4,
                 ),
               ),
             ),
           ],
-=======
-  Widget _buildSectionTitle(String text, {double size = 20}) {
-    return Text(
-      text,
-      style: GoogleFonts.ibmPlexSerif(
-        color: const Color(0xFFC9A86A),
-        fontSize: size,
-        fontWeight: FontWeight.w700,
-        height: 1.2,
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: GoogleFonts.ibmPlexSans(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
->>>>>>> 6b8abec8d234b614135685452e44d98d58e2ccf5
         ),
       ),
     );
   }
-<<<<<<< HEAD
 }
 
 // ================================================================
@@ -1044,16 +1286,21 @@ class _DeclarationItem extends StatelessWidget {
 // ================================================================
 
 class _ProceedButton extends StatefulWidget {
-  const _ProceedButton({required this.onTap, required this.isMobile});
+  const _ProceedButton({
+    required this.onTap,
+    required this.isMobile,
+  });
 
   final VoidCallback onTap;
   final bool isMobile;
 
   @override
-  State<_ProceedButton> createState() => _ProceedButtonState();
+  State<_ProceedButton> createState() =>
+      _ProceedButtonState();
 }
 
-class _ProceedButtonState extends State<_ProceedButton> {
+class _ProceedButtonState
+    extends State<_ProceedButton> {
   bool _hovering = false;
 
   @override
@@ -1073,31 +1320,45 @@ class _ProceedButtonState extends State<_ProceedButton> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: widget.isMobile ? double.infinity : 560,
-          height: widget.isMobile ? 65 : 90,
+          duration:
+              const Duration(milliseconds: 180),
+          width: widget.isMobile
+              ? double.infinity
+              : 560,
+          height:
+              widget.isMobile ? 65 : 90,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: _hovering
                 ? const Color(0xFFD8B978)
                 : const Color(0xFFC9A86A),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius:
+                BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(
-                  0xFFC9A86A,
-                ).withValues(alpha: _hovering ? 0.45 : 0.33),
-                blurRadius: _hovering ? 80 : 65,
-                spreadRadius: _hovering ? 15 : 10,
+                color:
+                    const Color(0xFFC9A86A)
+                        .withValues(
+                  alpha:
+                      _hovering ? 0.45 : 0.33,
+                ),
+                blurRadius:
+                    _hovering ? 80 : 65,
+                spreadRadius:
+                    _hovering ? 15 : 10,
               ),
             ],
           ),
           child: Text(
             'PROCEED',
-            style: GoogleFonts.ibmPlexSerif(
-              color: const Color(0xFF0B132B),
-              fontSize: widget.isMobile ? 23 : 32,
-              fontWeight: FontWeight.w700,
+            style:
+                GoogleFonts.ibmPlexSerif(
+              color:
+                  const Color(0xFF0B132B),
+              fontSize:
+                  widget.isMobile ? 23 : 32,
+              fontWeight:
+                  FontWeight.w700,
             ),
           ),
         ),
@@ -1111,248 +1372,11 @@ class _ProceedButtonState extends State<_ProceedButton> {
 // ================================================================
 
 class _Committee {
-  const _Committee({required this.value, required this.label});
+  const _Committee({
+    required this.value,
+    required this.label,
+  });
 
   final String value;
   final String label;
 }
-=======
-
-  Widget _buildField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    int maxLines = 1,
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(label),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          keyboardType: keyboardType,
-          validator: validator,
-          style: GoogleFonts.ibmPlexSans(
-            color: Colors.white,
-            fontSize: 15,
-          ),
-          decoration: _inputDecoration(hint),
-        ),
-      ],
-    );
-  }
-
-  void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Hook up backend / form submit here
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 700;
-
-        return Container(
-          width: double.infinity,
-          color: const Color(0xFF0B132B),
-          padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 20 : 48,
-            vertical: isMobile ? 24 : 40,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: const Color(0xFF5C1A1B),
-                    width: 2,
-                  ),
-                ),
-                padding: EdgeInsets.all(isMobile ? 20 : 32),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Individual Registration',
-                        style: GoogleFonts.ibmPlexSerif(
-                          color: const Color(0xFFC9A86A),
-                          fontSize: isMobile ? 26 : 36,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Fill in your details to register as an individual delegate.',
-                        style: GoogleFonts.ibmPlexSans(
-                          color: Colors.white,
-                          fontSize: isMobile ? 14 : 16,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      if (isMobile) ...[
-                        _buildField(
-                          label: 'Delegate Full Name',
-                          controller: _fullNameController,
-                          hint: 'Enter your full name',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'Email Address',
-                          controller: _emailController,
-                          hint: 'Enter your email',
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'Contact Number',
-                          controller: _contactController,
-                          hint: 'Enter your phone number',
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'MUN Experience (if any)',
-                          controller: _munExperienceController,
-                          hint: 'Tell us about your MUN experience',
-                          maxLines: 4,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'Committee Preference (1)',
-                          controller: _committeePref1Controller,
-                          hint: 'CCC / DISEC / AIPPM',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'Committee Preference (2)',
-                          controller: _committeePref2Controller,
-                          hint: 'CCC / DISEC / AIPPM',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'Portfolio/Country Preference (1)',
-                          controller: _portfolioPref1Controller,
-                          hint: 'Fill in the blanks',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildField(
-                          label: 'Portfolio/Country Preference (2)',
-                          controller: _portfolioPref2Controller,
-                          hint: 'Fill in the blanks',
-                        ),
-                      ] else ...[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  _buildField(
-                                    label: 'Delegate Full Name',
-                                    controller: _fullNameController,
-                                    hint: 'Enter your full name',
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildField(
-                                    label: 'Email Address',
-                                    controller: _emailController,
-                                    hint: 'Enter your email',
-                                    keyboardType: TextInputType.emailAddress,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildField(
-                                    label: 'Contact Number',
-                                    controller: _contactController,
-                                    hint: 'Enter your phone number',
-                                    keyboardType: TextInputType.phone,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildField(
-                                    label: 'MUN Experience (if any)',
-                                    controller: _munExperienceController,
-                                    hint: 'Tell us about your MUN experience',
-                                    maxLines: 4,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  _buildField(
-                                    label: 'Committee Preference (1)',
-                                    controller: _committeePref1Controller,
-                                    hint: 'CCC / DISEC / AIPPM',
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildField(
-                                    label: 'Committee Preference (2)',
-                                    controller: _committeePref2Controller,
-                                    hint: 'CCC / DISEC / AIPPM',
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildField(
-                                    label: 'Portfolio/Country Preference (1)',
-                                    controller: _portfolioPref1Controller,
-                                    hint: 'Fill in the blanks',
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildField(
-                                    label: 'Portfolio/Country Preference (2)',
-                                    controller: _portfolioPref2Controller,
-                                    hint: 'Fill in the blanks',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      const SizedBox(height: 28),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFC9A86A),
-                            foregroundColor: const Color(0xFF0B132B),
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'SUBMIT REGISTRATION',
-                            style: GoogleFonts.ibmPlexSerif(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
->>>>>>> 6b8abec8d234b614135685452e44d98d58e2ccf5
