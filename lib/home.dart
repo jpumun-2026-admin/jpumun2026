@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jpumun_website/widgets/about.dart';
+import 'package:jpumun_website/widgets/committees.dart';
+import 'package:jpumun_website/widgets/register_widget.dart';
+import 'package:jpumun_website/widgets/resources.dart';
+import 'package:jpumun_website/widgets/theme.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -80,9 +85,11 @@ class _HomePageState extends State<HomePage> {
               minutes: minutes,
               seconds: seconds,
             ),
-            // Add the rest of your sections here.
-
-
+            AboutSection(),
+            ThemeSection(),
+            CommitteesSection(),
+            ResourcesSection(),
+            RegistrationSection(),
           ],
         ),
       ),

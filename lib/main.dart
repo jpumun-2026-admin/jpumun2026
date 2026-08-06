@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jpumun_website/register_inst.dart';
 import 'home.dart';
 import 'register.dart';
 import 'package:flutter/rendering.dart';
@@ -19,6 +20,7 @@ class MainApp extends StatelessWidget {
       routes: {
         '/home': (context) => HomePage(),
         '/register': (context) => RegisterPage(),
+        '/register-institute':(context) => RegisterInstitute()
       },
       // Redirect root to /home for direct visits to '/'
       onGenerateRoute: (settings) {
