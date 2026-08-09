@@ -31,6 +31,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /coverage/
+.env
+node_modules/
 
 # Symbolication related
 app.*.symbols
@@ -46,3 +48,5 @@ app.*.map.json
 # Allow committing Flutter web build output (used for Vercel static deploy)
 !/build/web/
 !build/web/**
+.vercel
+.env*
