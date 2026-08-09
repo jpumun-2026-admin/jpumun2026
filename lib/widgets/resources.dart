@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ResourcesSection extends StatelessWidget {
   const ResourcesSection({super.key});
@@ -13,14 +14,20 @@ class ResourcesSection extends StatelessWidget {
     _ResourceData(
       title: 'DELEGATE\nPORTFOLIO MATRIX',
       icon: Icons.grid_view_rounded,
+      url:
+          'https://docs.google.com/spreadsheets/d/1laEWEZyEpr1hGRf1Pp0cWSIGkmHdVnPqnp4GlLLa-Wo/edit?usp=sharing',
     ),
     _ResourceData(
       title: 'JPUMUN\nBROCHURE',
       icon: Icons.menu_book_rounded,
+      url:
+          'https://drive.google.com/file/d/1pbjOlMUXGBXQ5FNFJ8qOWCxMxJOLNcCy/view?usp=sharing',
     ),
     _ResourceData(
       title: 'BACKGROUND\nGUIDE',
       icon: Icons.description_outlined,
+      url:
+          'https://drive.google.com/drive/folders/1xhtjrRuZZacestf1pOFSovAnhenCfzbx?usp=sharing',
     ),
   ];
 
@@ -51,24 +58,14 @@ class ResourcesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.fromLTRB(
-        120,
-        100,
-        120,
-        100,
-      ),
+      padding: const EdgeInsets.fromLTRB(120, 100, 120, 100),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 1696,
-          ),
+          constraints: const BoxConstraints(maxWidth: 1696),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionLabel(
-                fontSize: 28,
-                letterSpacing: 13,
-              ),
+              _buildSectionLabel(fontSize: 28, letterSpacing: 13),
 
               const SizedBox(height: 55),
 
@@ -84,16 +81,12 @@ class ResourcesSection extends StatelessWidget {
                         titleSize: 32,
                         padding: 30,
                         onTap: () {
-                          _handleResourceTap(
-                            context,
-                            _resources[i],
-                          );
+                          _handleResourceTap(context, _resources[i]);
                         },
                       ),
                     ),
 
-                    if (i != _resources.length - 1)
-                      const SizedBox(width: 30),
+                    if (i != _resources.length - 1) const SizedBox(width: 30),
                   ],
                 ],
               ),
@@ -116,19 +109,11 @@ class ResourcesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.fromLTRB(
-        60,
-        80,
-        60,
-        80,
-      ),
+      padding: const EdgeInsets.fromLTRB(60, 80, 60, 80),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionLabel(
-            fontSize: 21,
-            letterSpacing: 9,
-          ),
+          _buildSectionLabel(fontSize: 21, letterSpacing: 9),
 
           const SizedBox(height: 45),
 
@@ -139,11 +124,7 @@ class ResourcesSection extends StatelessWidget {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (
-                      int i = 0;
-                      i < _resources.length;
-                      i++
-                    ) ...[
+                    for (int i = 0; i < _resources.length; i++) ...[
                       Expanded(
                         child: _ResourceCard(
                           resource: _resources[i],
@@ -152,16 +133,12 @@ class ResourcesSection extends StatelessWidget {
                           titleSize: 24,
                           padding: 24,
                           onTap: () {
-                            _handleResourceTap(
-                              context,
-                              _resources[i],
-                            );
+                            _handleResourceTap(context, _resources[i]);
                           },
                         ),
                       ),
 
-                      if (i != _resources.length - 1)
-                        const SizedBox(width: 20),
+                      if (i != _resources.length - 1) const SizedBox(width: 20),
                     ],
                   ],
                 );
@@ -170,11 +147,7 @@ class ResourcesSection extends StatelessWidget {
               // Narrower portrait tablets.
               return Column(
                 children: [
-                  for (
-                    int i = 0;
-                    i < _resources.length;
-                    i++
-                  ) ...[
+                  for (int i = 0; i < _resources.length; i++) ...[
                     _ResourceCard(
                       resource: _resources[i],
                       height: 260,
@@ -183,15 +156,11 @@ class ResourcesSection extends StatelessWidget {
                       padding: 28,
                       horizontal: true,
                       onTap: () {
-                        _handleResourceTap(
-                          context,
-                          _resources[i],
-                        );
+                        _handleResourceTap(context, _resources[i]);
                       },
                     ),
 
-                    if (i != _resources.length - 1)
-                      const SizedBox(height: 22),
+                    if (i != _resources.length - 1) const SizedBox(height: 22),
                   ],
                 ],
               );
@@ -214,19 +183,11 @@ class ResourcesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.fromLTRB(
-        24,
-        55,
-        24,
-        55,
-      ),
+      padding: const EdgeInsets.fromLTRB(24, 55, 24, 55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionLabel(
-            fontSize: 11,
-            letterSpacing: 5,
-          ),
+          _buildSectionLabel(fontSize: 11, letterSpacing: 5),
 
           const SizedBox(height: 32),
 
@@ -239,15 +200,11 @@ class ResourcesSection extends StatelessWidget {
               padding: 20,
               horizontal: true,
               onTap: () {
-                _handleResourceTap(
-                  context,
-                  _resources[i],
-                );
+                _handleResourceTap(context, _resources[i]);
               },
             ),
 
-            if (i != _resources.length - 1)
-              const SizedBox(height: 18),
+            if (i != _resources.length - 1) const SizedBox(height: 18),
           ],
 
           const SizedBox(height: 55),
@@ -262,24 +219,24 @@ class ResourcesSection extends StatelessWidget {
   // RESOURCE ACTION
   // ============================================================
 
-  void _handleResourceTap(
+  Future<void> _handleResourceTap(
     BuildContext context,
     _ResourceData resource,
-  ) {
-    // We'll connect the actual PDF / Google Drive / web URLs
-    // once you have them.
-    //
-    // Example later:
-    //
-    // launchUrl(Uri.parse(resource.url));
+  ) async {
+    final uri = Uri.parse(resource.url);
+    final didLaunch = await launchUrl(
+      uri,
+      mode: LaunchMode.platformDefault,
+      webOnlyWindowName: '_blank',
+    );
+
+    if (didLaunch || !context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${resource.displayTitle} will be available soon.',
-          style: GoogleFonts.ibmPlexSans(
-            color: Colors.white,
-          ),
+          'Could not open ${resource.displayTitle}. Please try again.',
+          style: GoogleFonts.ibmPlexSans(color: Colors.white),
         ),
         backgroundColor: _cardBackground,
         behavior: SnackBarBehavior.floating,
@@ -384,11 +341,7 @@ class _ResourceCardState extends State<_ResourceCard> {
           curve: Curves.easeOut,
           width: double.infinity,
           height: widget.height,
-          transform: Matrix4.translationValues(
-            0,
-            _hovering ? -5 : 0,
-            0,
-          ),
+          transform: Matrix4.translationValues(0, _hovering ? -5 : 0, 0),
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(14),
@@ -401,9 +354,7 @@ class _ResourceCardState extends State<_ResourceCard> {
             boxShadow: _hovering
                 ? [
                     BoxShadow(
-                      color: const Color(
-                        0xFFC9A86A,
-                      ).withValues(alpha: 0.10),
+                      color: const Color(0xFFC9A86A).withValues(alpha: 0.10),
                       blurRadius: 22,
                       spreadRadius: 1,
                     ),
@@ -412,9 +363,7 @@ class _ResourceCardState extends State<_ResourceCard> {
           ),
           child: Padding(
             padding: EdgeInsets.all(widget.padding),
-            child: widget.horizontal
-                ? _buildHorizontal()
-                : _buildVertical(),
+            child: widget.horizontal ? _buildHorizontal() : _buildVertical(),
           ),
         ),
       ),
@@ -477,9 +426,7 @@ class _ResourceCardState extends State<_ResourceCard> {
           ),
         ),
 
-        SizedBox(
-          width: widget.padding,
-        ),
+        SizedBox(width: widget.padding),
 
         Expanded(
           child: Text(
@@ -496,12 +443,8 @@ class _ResourceCardState extends State<_ResourceCard> {
         const SizedBox(width: 12),
 
         AnimatedSlide(
-          duration: const Duration(
-            milliseconds: 200,
-          ),
-          offset: _hovering
-              ? const Offset(0.15, 0)
-              : Offset.zero,
+          duration: const Duration(milliseconds: 200),
+          offset: _hovering ? const Offset(0.15, 0) : Offset.zero,
           child: const Icon(
             Icons.arrow_outward_rounded,
             color: Colors.white,
@@ -529,12 +472,8 @@ class _ResourceCardState extends State<_ResourceCard> {
         const SizedBox(width: 10),
 
         AnimatedSlide(
-          duration: const Duration(
-            milliseconds: 200,
-          ),
-          offset: _hovering
-              ? const Offset(0.2, -0.2)
-              : Offset.zero,
+          duration: const Duration(milliseconds: 200),
+          offset: _hovering ? const Offset(0.2, -0.2) : Offset.zero,
           child: const Icon(
             Icons.arrow_outward_rounded,
             color: Colors.white,
@@ -554,10 +493,12 @@ class _ResourceData {
   const _ResourceData({
     required this.title,
     required this.icon,
+    required this.url,
   });
 
   final String title;
   final IconData icon;
+  final String url;
 
   String get displayTitle {
     return title.replaceAll('\n', ' ');

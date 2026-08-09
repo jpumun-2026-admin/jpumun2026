@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:jpumun_website/services/razorpay_api.dart';
+import 'package:jpumun_website/services/razorpay_checkout.dart';
+import 'package:jpumun_website/services/razorpay_checkout_types.dart';
 
 class RegisterInstitute extends StatefulWidget {
   const RegisterInstitute({super.key});
@@ -16,10 +19,13 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
   static const String _registrationApiUrl =
       'https://script.google.com/macros/s/AKfycby8iL2S4uzaoyvTi-NIVr-hNe4a8-SqcfcpE7J5vcK6n9pLW0Dtxik9K7vP22ar1XF4/exec';
+  static const int _paymentAmountPaise = 95000;
+  static const String _paymentCurrency = 'INR';
+  static const String _merchantName = 'JPUMUN 2026';
+  static const String _paymentDescription =
+      'JPUMUN 2026 institutional delegation registration';
 
   bool _isSubmitting = false;
-  String? _registrationId;
-
   // ============================================================
   // FORM A — INSTITUTIONAL REGISTRATION
   // ============================================================
@@ -38,9 +44,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // FORM B — DELEGATE DETAILS
   // ============================================================
 
-  final List<_DelegateFormData> _delegates = [
-    _DelegateFormData(),
-  ];
+  final List<_DelegateFormData> _delegates = [_DelegateFormData()];
 
   // ============================================================
   // DECLARATIONS
@@ -63,18 +67,14 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   static const Color white = Color(0xFFF9F5F4);
 
   static const List<_Committee> _committees = [
-    _Committee(
-      value: 'CCC',
-      label: 'Continuous Crisis Committee (CCC)',
-    ),
+    _Committee(value: 'CCC', label: 'Continuous Crisis Committee (CCC)'),
     _Committee(
       value: 'AIPPM',
       label: 'All India Political Parties Meet (AIPPM)',
     ),
     _Committee(
       value: 'DISEC',
-      label:
-          'Disarmament and International Security Committee (DISEC)',
+      label: 'Disarmament and International Security Committee (DISEC)',
     ),
   ];
 
@@ -118,9 +118,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       return 'Email address is required';
     }
 
-    final regex = RegExp(
-      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-    );
+    final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
     if (!regex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
@@ -134,10 +132,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       return 'Contact number is required';
     }
 
-    final cleaned = value.replaceAll(
-      RegExp(r'[\s\-\(\)]'),
-      '',
-    );
+    final cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
 
     if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(cleaned)) {
       return 'Enter a valid contact number';
@@ -172,9 +167,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
   void _removeDelegate(int index) {
     if (_delegates.length == 1) {
-      _showMessage(
-        'At least one delegate must be added.',
-      );
+      _showMessage('At least one delegate must be added.');
       return;
     }
 
@@ -189,9 +182,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // ============================================================
 
   void _updateDeclarationError() {
-    if (_declaration1 &&
-        _declaration2 &&
-        _declaration3) {
+    if (_declaration1 && _declaration2 && _declaration3) {
       _showDeclarationError = false;
     }
   }
@@ -218,8 +209,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         return;
       }
 
-      if (delegate.committeePreference1 ==
-          delegate.committeePreference2) {
+      if (delegate.committeePreference1 == delegate.committeePreference2) {
         _showMessage(
           'Delegate ${i + 1} must select two different committee preferences.',
         );
@@ -229,9 +219,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
     if (!_declaration1 || !_declaration2 || !_declaration3) {
       setState(() => _showDeclarationError = true);
-      _showMessage(
-        'Please accept all declarations before proceeding.',
-      );
+      _showMessage('Please accept all declarations before proceeding.');
       return;
     }
 
@@ -261,17 +249,16 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               'full_name': delegate.nameController.text.trim(),
               'email': delegate.emailController.text.trim(),
               'contact': delegate.contactController.text.trim(),
-              'mun_experience':
-                  delegate.munExperienceController.text.trim(),
-              'committee_preference_1':
-                  delegate.committeePreference1,
-              'committee_preference_2':
-                  delegate.committeePreference2,
+              'mun_experience': delegate.munExperienceController.text.trim(),
+              'committee_preference_1': delegate.committeePreference1,
+              'committee_preference_2': delegate.committeePreference2,
               'portfolio_country_preference_1': delegate
-                  .portfolioPreference1Controller.text
+                  .portfolioPreference1Controller
+                  .text
                   .trim(),
               'portfolio_country_preference_2': delegate
-                  .portfolioPreference2Controller.text
+                  .portfolioPreference2Controller
+                  .text
                   .trim(),
             },
           )
@@ -281,15 +268,38 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       'declaration_allocation_policy': _declaration3,
     };
 
+    final delegateCount = _delegates.length;
+    final subtotalAmountPaise = delegateCount * _paymentAmountPaise;
+
+    await _showPaymentSummaryAndProceed(
+      title: 'Institutional Delegation Registration',
+      delegateCount: delegateCount,
+      subtotalAmountPaise: subtotalAmountPaise,
+      onConfirm: () => _completePaymentAndSubmit(
+        data,
+        totalAmountPaise: subtotalAmountPaise,
+      ),
+    );
+  }
+
+  Future<void> _completePaymentAndSubmit(
+    Map<String, dynamic> data, {
+    required int totalAmountPaise,
+  }) async {
     setState(() => _isSubmitting = true);
 
     try {
+      final payment = await _runPaymentFlow(
+        receipt: 'institutional_${DateTime.now().millisecondsSinceEpoch}',
+        amountPaise: totalAmountPaise,
+      );
+
+      final payload = <String, dynamic>{...data, 'payment': payment};
+
       final response = await http.post(
         Uri.parse(_registrationApiUrl),
-        headers: const {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: jsonEncode(data),
+        headers: const {'Content-Type': 'text/plain;charset=utf-8'},
+        body: jsonEncode(payload),
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -307,33 +317,118 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         );
       }
 
-      final registrationId =
-          decoded['registration_id']?.toString();
+      final registrationId = decoded['registration_id']?.toString();
       final delegatesSaved = decoded['delegates_saved'];
 
       if (!mounted) return;
 
-      setState(() => _registrationId = registrationId);
-
       _showMessage(
         registrationId == null
-            ? 'Institutional registration submitted successfully.'
-            : 'Institutional registration submitted successfully. '
-                'ID: $registrationId'
-                '${delegatesSaved == null ? '' : ' • Delegates saved: $delegatesSaved'}',
+            ? 'Payment successful. Institutional registration submitted.'
+            : 'Payment successful. Institutional registration submitted. '
+                  'ID: $registrationId'
+                  '${delegatesSaved == null ? '' : ' • Delegates saved: $delegatesSaved'}',
       );
-
-      // Payment navigation can be added here once the payment route/page
-      // is ready. Both the institution and delegate rows are now in Sheets.
+    } on RazorpayApiException catch (error) {
+      if (!mounted) return;
+      _showMessage(error.message);
     } catch (error) {
       if (!mounted) return;
       _showMessage(
-        'Could not submit registration. Please try again.\n$error',
+        'Could not complete registration after payment. '
+        'If the amount was charged, contact the Secretariat with your payment details.\n$error',
       );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
+    }
+  }
+
+  Future<Map<String, dynamic>> _runPaymentFlow({
+    required String receipt,
+    required int amountPaise,
+  }) async {
+    if (!isRazorpayCheckoutSupported) {
+      throw const RazorpayApiException(
+        'Razorpay checkout is only available on the Flutter web build.',
+      );
+    }
+
+    final checkoutReady = await waitForRazorpayCheckout();
+    if (!checkoutReady) {
+      throw const RazorpayApiException(
+        'Razorpay checkout could not be loaded. Please refresh the page and try again.',
+      );
+    }
+
+    final order = await RazorpayApi.createOrder(
+      amount: amountPaise,
+      currency: _paymentCurrency,
+      receipt: receipt,
+    );
+
+    final checkoutResult = await openRazorpayCheckout(
+      RazorpayCheckoutOptions(
+        keyId: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        name: _merchantName,
+        description: _paymentDescription,
+        orderId: order.orderId,
+        contact: _headDelegateContactController.text.trim(),
+      ),
+    );
+
+    switch (checkoutResult.status) {
+      case RazorpayCheckoutStatus.success:
+        await RazorpayApi.verifyPayment(
+          orderId: order.orderId,
+          paymentId: checkoutResult.paymentId!,
+          signature: checkoutResult.signature!,
+        );
+
+        return {
+          'amount': order.amount,
+          'currency': order.currency,
+          'razorpay_order_id': order.orderId,
+          'razorpay_payment_id': checkoutResult.paymentId,
+          'razorpay_signature': checkoutResult.signature,
+        };
+      case RazorpayCheckoutStatus.failed:
+        throw RazorpayApiException(
+          checkoutResult.errorMessage ?? 'Payment failed.',
+        );
+      case RazorpayCheckoutStatus.dismissed:
+        throw const RazorpayApiException('Payment cancelled.');
+    }
+  }
+
+  Future<void> _showPaymentSummaryAndProceed({
+    required String title,
+    required int delegateCount,
+    required int subtotalAmountPaise,
+    required Future<void> Function() onConfirm,
+  }) async {
+    final shouldContinue = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.72),
+      builder: (sheetContext) {
+        return _PaymentSummarySheet(
+          title: title,
+          delegateCount: delegateCount,
+          perHeadAmountPaise: _paymentAmountPaise,
+          subtotalAmountPaise: subtotalAmountPaise,
+          onPayNow: () {
+            Navigator.of(sheetContext).pop(true);
+          },
+        );
+      },
+    );
+
+    if (shouldContinue == true && mounted) {
+      await onConfirm();
     }
   }
 
@@ -346,12 +441,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       SnackBar(
         backgroundColor: fieldBackground,
         behavior: SnackBarBehavior.floating,
-        content: Text(
-          message,
-          style: GoogleFonts.ibmPlexSans(
-            color: white,
-          ),
-        ),
+        content: Text(message, style: GoogleFonts.ibmPlexSans(color: white)),
       ),
     );
   }
@@ -370,23 +460,19 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
             final width = constraints.maxWidth;
 
             final isMobile = width < 650;
-            final isTablet =
-                width >= 650 && width < 1050;
+            final isTablet = width >= 650 && width < 1050;
 
             final horizontalPadding = isMobile
                 ? 24.0
                 : isTablet
-                    ? 50.0
-                    : 80.0;
+                ? 50.0
+                : 80.0;
 
             return SingleChildScrollView(
-              keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 1290,
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 1290),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
                       horizontalPadding,
@@ -397,73 +483,48 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                     child: Form(
                       key: _formKey,
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // ====================================
                           // HEADER
                           // ====================================
+                          _buildHeader(isMobile: isMobile, isTablet: isTablet),
 
-                          _buildHeader(
-                            isMobile: isMobile,
-                            isTablet: isTablet,
-                          ),
-
-                          SizedBox(
-                            height: isMobile ? 50 : 85,
-                          ),
+                          SizedBox(height: isMobile ? 50 : 85),
 
                           // ====================================
                           // INTRODUCTION
                           // ====================================
+                          _buildIntroduction(isMobile: isMobile),
 
-                          _buildIntroduction(
-                            isMobile: isMobile,
-                          ),
-
-                          SizedBox(
-                            height: isMobile ? 45 : 65,
-                          ),
+                          SizedBox(height: isMobile ? 45 : 65),
 
                           _buildDivider(),
 
-                          SizedBox(
-                            height: isMobile ? 45 : 65,
-                          ),
+                          SizedBox(height: isMobile ? 45 : 65),
 
                           // ====================================
                           // FORM A
                           // ====================================
-
                           _buildSectionHeading(
                             number: '01',
-                            title:
-                                'Institutional Registration',
+                            title: 'Institutional Registration',
                             isMobile: isMobile,
                           ),
 
-                          SizedBox(
-                            height: isMobile ? 38 : 52,
-                          ),
+                          SizedBox(height: isMobile ? 38 : 52),
 
-                          _buildFormA(
-                            isMobile: isMobile,
-                          ),
+                          _buildFormA(isMobile: isMobile),
 
-                          SizedBox(
-                            height: isMobile ? 55 : 80,
-                          ),
+                          SizedBox(height: isMobile ? 55 : 80),
 
                           _buildDivider(),
 
-                          SizedBox(
-                            height: isMobile ? 55 : 80,
-                          ),
+                          SizedBox(height: isMobile ? 55 : 80),
 
                           // ====================================
                           // FORM B
                           // ====================================
-
                           _buildSectionHeading(
                             number: '02',
                             title: 'Delegation Details',
@@ -475,67 +536,48 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                           Text(
                             'Please provide the details of each delegate who will be representing your institution.',
                             style: GoogleFonts.ibmPlexSans(
-                              color:
-                                  white.withValues(alpha: 0.75),
-                              fontSize:
-                                  isMobile ? 13 : 17,
+                              color: white.withValues(alpha: 0.75),
+                              fontSize: isMobile ? 13 : 17,
                               height: 1.5,
                             ),
                           ),
 
-                          SizedBox(
-                            height: isMobile ? 35 : 50,
-                          ),
+                          SizedBox(height: isMobile ? 35 : 50),
 
-                          ...List.generate(
-                            _delegates.length,
-                            (index) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.only(
-                                  bottom: 34,
-                                ),
-                                child: _buildDelegateCard(
-                                  index: index,
-                                  isMobile: isMobile,
-                                ),
-                              );
-                            },
-                          ),
+                          ...List.generate(_delegates.length, (index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 34),
+                              child: _buildDelegateCard(
+                                index: index,
+                                isMobile: isMobile,
+                              ),
+                            );
+                          }),
 
                           const SizedBox(height: 6),
 
                           _AddDelegateButton(
                             onTap: _addDelegate,
-                            isMobile: isMobile, isLoading: false,
+                            isMobile: isMobile,
+                            isLoading: false,
                           ),
 
-                          SizedBox(
-                            height: isMobile ? 60 : 85,
-                          ),
+                          SizedBox(height: isMobile ? 60 : 85),
 
                           _buildDivider(),
 
-                          SizedBox(
-                            height: isMobile ? 55 : 75,
-                          ),
+                          SizedBox(height: isMobile ? 55 : 75),
 
                           // ====================================
                           // DECLARATION
                           // ====================================
+                          _buildDeclaration(isMobile: isMobile),
 
-                          _buildDeclaration(
-                            isMobile: isMobile,
-                          ),
-
-                          SizedBox(
-                            height: isMobile ? 55 : 80,
-                          ),
+                          SizedBox(height: isMobile ? 55 : 80),
 
                           // ====================================
                           // PROCEED
                           // ====================================
-
                           Center(
                             child: _ProceedButton(
                               onTap: _isSubmitting ? null : _proceed,
@@ -548,14 +590,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
                           Center(
                             child: Text(
-                              'Up Next: Payment',
-                              style:
-                                  GoogleFonts.ibmPlexSans(
+                              'You will be taken to secure payment for INR 950',
+                              style: GoogleFonts.ibmPlexSans(
                                 color: gold,
-                                fontSize:
-                                    isMobile ? 10 : 13,
-                                fontWeight:
-                                    FontWeight.w700,
+                                fontSize: isMobile ? 10 : 13,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
@@ -576,14 +615,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // HEADER
   // ============================================================
 
-  Widget _buildHeader({
-    required bool isMobile,
-    required bool isTablet,
-  }) {
+  Widget _buildHeader({required bool isMobile, required bool isTablet}) {
     if (isMobile) {
       return Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.asset(
             'lib/assets/logo_text.png',
@@ -603,12 +638,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                 fontSize: 22,
                 fontWeight: FontWeight.w400,
                 height: 1.25,
-                shadows: const [
-                  Shadow(
-                    color: red,
-                    blurRadius: 16.9,
-                  ),
-                ],
+                shadows: const [Shadow(color: red, blurRadius: 16.9)],
               ),
             ),
           ),
@@ -617,8 +647,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     }
 
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Align(
@@ -641,12 +670,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
             fontSize: isTablet ? 25 : 34,
             fontWeight: FontWeight.w400,
             height: 1.2,
-            shadows: const [
-              Shadow(
-                color: red,
-                blurRadius: 16.9,
-              ),
-            ],
+            shadows: const [Shadow(color: red, blurRadius: 16.9)],
           ),
         ),
       ],
@@ -657,12 +681,9 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // INTRODUCTION
   // ============================================================
 
-  Widget _buildIntroduction({
-    required bool isMobile,
-  }) {
+  Widget _buildIntroduction({required bool isMobile}) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Institutional Delegation Registration',
@@ -722,8 +743,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     required bool isMobile,
   }) {
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           number,
@@ -754,15 +774,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // FORM A
   // ============================================================
 
-  Widget _buildFormA({
-    required bool isMobile,
-  }) {
+  Widget _buildFormA({required bool isMobile}) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Institution
-
         _FormFieldBlock(
           label: 'Institution Name',
           child: _buildTextField(
@@ -775,11 +791,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         const SizedBox(height: 38),
 
         // Faculty Advisor
-
-        _UnderlinedLabel(
-          text: 'Faculty Advisor',
-          fontSize: isMobile ? 20 : 26,
-        ),
+        _UnderlinedLabel(text: 'Faculty Advisor', fontSize: isMobile ? 20 : 26),
 
         const SizedBox(height: 22),
 
@@ -787,8 +799,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           _FormFieldBlock(
             label: 'Faculty Advisor Name',
             child: _buildTextField(
-              controller:
-                  _facultyAdvisorNameController,
+              controller: _facultyAdvisorNameController,
               hint: 'Enter faculty advisor name',
               validator: _required,
             ),
@@ -799,8 +810,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           _FormFieldBlock(
             label: 'Contact Number',
             child: _buildTextField(
-              controller:
-                  _facultyAdvisorContactController,
+              controller: _facultyAdvisorContactController,
               hint: '+91 XXXXX XXXXX',
               keyboardType: TextInputType.phone,
               validator: _phoneValidator,
@@ -808,17 +818,14 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           ),
         ] else
           Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _FormFieldBlock(
                   label: 'Faculty Advisor Name',
                   child: _buildTextField(
-                    controller:
-                        _facultyAdvisorNameController,
-                    hint:
-                        'Enter faculty advisor name',
+                    controller: _facultyAdvisorNameController,
+                    hint: 'Enter faculty advisor name',
                     validator: _required,
                   ),
                 ),
@@ -830,13 +837,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                 child: _FormFieldBlock(
                   label: 'Contact Number',
                   child: _buildTextField(
-                    controller:
-                        _facultyAdvisorContactController,
+                    controller: _facultyAdvisorContactController,
                     hint: '+91 XXXXX XXXXX',
-                    keyboardType:
-                        TextInputType.phone,
-                    validator:
-                        _phoneValidator,
+                    keyboardType: TextInputType.phone,
+                    validator: _phoneValidator,
                   ),
                 ),
               ),
@@ -846,11 +850,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         const SizedBox(height: 48),
 
         // Head Delegate
-
-        _UnderlinedLabel(
-          text: 'Head Delegate',
-          fontSize: isMobile ? 20 : 26,
-        ),
+        _UnderlinedLabel(text: 'Head Delegate', fontSize: isMobile ? 20 : 26),
 
         const SizedBox(height: 22),
 
@@ -858,8 +858,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           _FormFieldBlock(
             label: 'Head Delegate Name',
             child: _buildTextField(
-              controller:
-                  _headDelegateNameController,
+              controller: _headDelegateNameController,
               hint: 'Enter head delegate name',
               validator: _required,
             ),
@@ -870,8 +869,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           _FormFieldBlock(
             label: 'Contact Number',
             child: _buildTextField(
-              controller:
-                  _headDelegateContactController,
+              controller: _headDelegateContactController,
               hint: '+91 XXXXX XXXXX',
               keyboardType: TextInputType.phone,
               validator: _phoneValidator,
@@ -879,17 +877,14 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           ),
         ] else
           Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _FormFieldBlock(
                   label: 'Head Delegate Name',
                   child: _buildTextField(
-                    controller:
-                        _headDelegateNameController,
-                    hint:
-                        'Enter head delegate name',
+                    controller: _headDelegateNameController,
+                    hint: 'Enter head delegate name',
                     validator: _required,
                   ),
                 ),
@@ -901,13 +896,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                 child: _FormFieldBlock(
                   label: 'Contact Number',
                   child: _buildTextField(
-                    controller:
-                        _headDelegateContactController,
+                    controller: _headDelegateContactController,
                     hint: '+91 XXXXX XXXXX',
-                    keyboardType:
-                        TextInputType.phone,
-                    validator:
-                        _phoneValidator,
+                    keyboardType: TextInputType.phone,
+                    validator: _phoneValidator,
                   ),
                 ),
               ),
@@ -917,20 +909,14 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         const SizedBox(height: 38),
 
         // Delegation size
-
         _FormFieldBlock(
           label: 'Approximate Delegation Size',
           child: _buildTextField(
-            controller:
-                _delegationSizeController,
-            hint:
-                'Enter approximate number of delegates',
+            controller: _delegationSizeController,
+            hint: 'Enter approximate number of delegates',
             keyboardType: TextInputType.number,
-            validator:
-                _delegationSizeValidator,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
+            validator: _delegationSizeValidator,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
         ),
       ],
@@ -941,43 +927,30 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // DELEGATE CARD
   // ============================================================
 
-  Widget _buildDelegateCard({
-    required int index,
-    required bool isMobile,
-  }) {
+  Widget _buildDelegateCard({required int index, required bool isMobile}) {
     final delegate = _delegates[index];
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        isMobile ? 20 : 32,
-      ),
+      padding: EdgeInsets.all(isMobile ? 20 : 32),
       decoration: BoxDecoration(
         color: fieldBackground,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: red,
-          width: 2,
-        ),
+        border: Border.all(color: red, width: 2),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Card header
-
           Row(
             children: [
               Expanded(
                 child: Text(
                   'Delegate ${index + 1}',
-                  style:
-                      GoogleFonts.ibmPlexSerif(
+                  style: GoogleFonts.ibmPlexSerif(
                     color: gold,
-                    fontSize:
-                        isMobile ? 22 : 28,
-                    fontWeight:
-                        FontWeight.w600,
+                    fontSize: isMobile ? 22 : 28,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -985,12 +958,8 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               if (_delegates.length > 1)
                 IconButton(
                   tooltip: 'Remove delegate',
-                  onPressed: () =>
-                      _removeDelegate(index),
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: white,
-                  ),
+                  onPressed: () => _removeDelegate(index),
+                  icon: const Icon(Icons.close_rounded, color: white),
                 ),
             ],
           ),
@@ -998,12 +967,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 30),
 
           // Full name
-
           _FormFieldBlock(
             label: 'Delegate Full Name',
             child: _buildTextField(
-              controller:
-                  delegate.nameController,
+              controller: delegate.nameController,
               hint: 'John Doe',
               validator: _required,
             ),
@@ -1012,16 +979,13 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 32),
 
           // Email + contact
-
           if (isMobile) ...[
             _FormFieldBlock(
               label: 'Email Address',
               child: _buildTextField(
-                controller:
-                    delegate.emailController,
+                controller: delegate.emailController,
                 hint: 'example@email.com',
-                keyboardType:
-                    TextInputType.emailAddress,
+                keyboardType: TextInputType.emailAddress,
                 validator: _emailValidator,
               ),
             ),
@@ -1031,32 +995,24 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
             _FormFieldBlock(
               label: 'Contact Number',
               child: _buildTextField(
-                controller:
-                    delegate.contactController,
+                controller: delegate.contactController,
                 hint: '+91 XXXXX XXXXX',
-                keyboardType:
-                    TextInputType.phone,
+                keyboardType: TextInputType.phone,
                 validator: _phoneValidator,
               ),
             ),
           ] else
             Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: _FormFieldBlock(
                     label: 'Email Address',
                     child: _buildTextField(
-                      controller:
-                          delegate.emailController,
-                      hint:
-                          'example@email.com',
-                      keyboardType:
-                          TextInputType
-                              .emailAddress,
-                      validator:
-                          _emailValidator,
+                      controller: delegate.emailController,
+                      hint: 'example@email.com',
+                      keyboardType: TextInputType.emailAddress,
+                      validator: _emailValidator,
                     ),
                   ),
                 ),
@@ -1067,14 +1023,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                   child: _FormFieldBlock(
                     label: 'Contact Number',
                     child: _buildTextField(
-                      controller:
-                          delegate.contactController,
-                      hint:
-                          '+91 XXXXX XXXXX',
-                      keyboardType:
-                          TextInputType.phone,
-                      validator:
-                          _phoneValidator,
+                      controller: delegate.contactController,
+                      hint: '+91 XXXXX XXXXX',
+                      keyboardType: TextInputType.phone,
+                      validator: _phoneValidator,
                     ),
                   ),
                 ),
@@ -1084,14 +1036,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 32),
 
           // MUN Experience
-
           _FormFieldBlock(
             label: 'MUN Experience (if any)',
             child: _buildTextField(
-              controller: delegate
-                  .munExperienceController,
-              hint:
-                  'Tell us about previous MUN experience',
+              controller: delegate.munExperienceController,
+              hint: 'Tell us about previous MUN experience',
               maxLines: 4,
             ),
           ),
@@ -1099,15 +1048,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 42),
 
           // Committee Preference 1
-
           _buildCommitteeSection(
             title: 'Committee Preference 01',
-            value:
-                delegate.committeePreference1,
+            value: delegate.committeePreference1,
             onChanged: (value) {
               setState(() {
-                delegate.committeePreference1 =
-                    value;
+                delegate.committeePreference1 = value;
               });
             },
             isMobile: isMobile,
@@ -1116,15 +1062,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 42),
 
           // Committee Preference 2
-
           _buildCommitteeSection(
             title: 'Committee Preference 02',
-            value:
-                delegate.committeePreference2,
+            value: delegate.committeePreference2,
             onChanged: (value) {
               setState(() {
-                delegate.committeePreference2 =
-                    value;
+                delegate.committeePreference2 = value;
               });
             },
             isMobile: isMobile,
@@ -1133,16 +1076,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 38),
 
           // Portfolio preferences
-
           if (isMobile) ...[
             _FormFieldBlock(
-              label:
-                  'Portfolio / Country Preference 01',
+              label: 'Portfolio / Country Preference 01',
               child: _buildTextField(
-                controller: delegate
-                    .portfolioPreference1Controller,
-                hint:
-                    'Enter preferred portfolio / country',
+                controller: delegate.portfolioPreference1Controller,
+                hint: 'Enter preferred portfolio / country',
                 validator: _required,
               ),
             ),
@@ -1150,30 +1089,23 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
             const SizedBox(height: 32),
 
             _FormFieldBlock(
-              label:
-                  'Portfolio / Country Preference 02',
+              label: 'Portfolio / Country Preference 02',
               child: _buildTextField(
-                controller: delegate
-                    .portfolioPreference2Controller,
-                hint:
-                    'Enter preferred portfolio / country',
+                controller: delegate.portfolioPreference2Controller,
+                hint: 'Enter preferred portfolio / country',
                 validator: _required,
               ),
             ),
           ] else
             Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: _FormFieldBlock(
-                    label:
-                        'Portfolio / Country Preference 01',
+                    label: 'Portfolio / Country Preference 01',
                     child: _buildTextField(
-                      controller: delegate
-                          .portfolioPreference1Controller,
-                      hint:
-                          'Enter preferred portfolio / country',
+                      controller: delegate.portfolioPreference1Controller,
+                      hint: 'Enter preferred portfolio / country',
                       validator: _required,
                     ),
                   ),
@@ -1183,13 +1115,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
                 Expanded(
                   child: _FormFieldBlock(
-                    label:
-                        'Portfolio / Country Preference 02',
+                    label: 'Portfolio / Country Preference 02',
                     child: _buildTextField(
-                      controller: delegate
-                          .portfolioPreference2Controller,
-                      hint:
-                          'Enter preferred portfolio / country',
+                      controller: delegate.portfolioPreference2Controller,
+                      hint: 'Enter preferred portfolio / country',
                       validator: _required,
                     ),
                   ),
@@ -1209,8 +1138,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     required TextEditingController controller,
     required String hint,
     String? Function(String?)? validator,
-    TextInputType keyboardType =
-        TextInputType.text,
+    TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
     List<TextInputFormatter>? inputFormatters,
   }) {
@@ -1221,10 +1149,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       maxLines: maxLines,
       inputFormatters: inputFormatters,
       cursorColor: gold,
-      style: GoogleFonts.ibmPlexSans(
-        color: white,
-        fontSize: 17,
-      ),
+      style: GoogleFonts.ibmPlexSans(color: white, fontSize: 17),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.ibmPlexSans(
@@ -1239,15 +1164,9 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         ),
         border: _inputBorder(gold),
         enabledBorder: _inputBorder(gold),
-        focusedBorder:
-            _inputBorder(gold, width: 2),
-        errorBorder:
-            _inputBorder(Colors.redAccent),
-        focusedErrorBorder:
-            _inputBorder(
-          Colors.redAccent,
-          width: 2,
-        ),
+        focusedBorder: _inputBorder(gold, width: 2),
+        errorBorder: _inputBorder(Colors.redAccent),
+        focusedErrorBorder: _inputBorder(Colors.redAccent, width: 2),
         errorStyle: GoogleFonts.ibmPlexSans(
           color: Colors.redAccent,
           fontSize: 12,
@@ -1256,16 +1175,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     );
   }
 
-  OutlineInputBorder _inputBorder(
-    Color color, {
-    double width = 1,
-  }) {
+  OutlineInputBorder _inputBorder(Color color, {double width = 1}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(
-        color: color,
-        width: width,
-      ),
+      borderSide: BorderSide(color: color, width: width),
     );
   }
 
@@ -1280,82 +1193,52 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     required bool isMobile,
   }) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _UnderlinedLabel(
-          text: title,
-          fontSize: isMobile ? 20 : 28,
-        ),
+        _UnderlinedLabel(text: title, fontSize: isMobile ? 20 : 28),
 
         const SizedBox(height: 22),
 
-        ..._committees.map(
-          (committee) {
-            final selected =
-                value == committee.value;
+        ..._committees.map((committee) {
+          final selected = value == committee.value;
 
-            return Padding(
-              padding:
-                  const EdgeInsets.only(bottom: 14),
-              child: InkWell(
-                borderRadius:
-                    BorderRadius.circular(16),
-                onTap: () =>
-                    onChanged(committee.value),
-                child: AnimatedContainer(
-                  duration:
-                      const Duration(milliseconds: 150),
-                  width: double.infinity,
-                  constraints:
-                      const BoxConstraints(
-                    minHeight: 64,
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? background
-                        : Colors.transparent,
-                    borderRadius:
-                        BorderRadius.circular(16),
-                    border: selected
-                        ? Border.all(
-                            color: gold,
-                            width: 1,
-                          )
-                        : null,
-                  ),
-                  child: Row(
-                    children: [
-                      _RadioCircle(
-                        selected: selected,
-                      ),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => onChanged(committee.value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: double.infinity,
+                constraints: const BoxConstraints(minHeight: 64),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                decoration: BoxDecoration(
+                  color: selected ? background : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  border: selected ? Border.all(color: gold, width: 1) : null,
+                ),
+                child: Row(
+                  children: [
+                    _RadioCircle(selected: selected),
 
-                      const SizedBox(width: 14),
+                    const SizedBox(width: 14),
 
-                      Expanded(
-                        child: Text(
-                          committee.label,
-                          style:
-                              GoogleFonts.ibmPlexSans(
-                            color: white,
-                            fontSize:
-                                isMobile ? 14 : 19,
-                            height: 1.35,
-                          ),
+                    Expanded(
+                      child: Text(
+                        committee.label,
+                        style: GoogleFonts.ibmPlexSans(
+                          color: white,
+                          fontSize: isMobile ? 14 : 19,
+                          height: 1.35,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -1364,17 +1247,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   // DECLARATION
   // ============================================================
 
-  Widget _buildDeclaration({
-    required bool isMobile,
-  }) {
+  Widget _buildDeclaration({required bool isMobile}) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _UnderlinedLabel(
-          text: 'Declaration',
-          fontSize: isMobile ? 20 : 28,
-        ),
+        _UnderlinedLabel(text: 'Declaration', fontSize: isMobile ? 20 : 28),
 
         const SizedBox(height: 28),
 
@@ -1425,8 +1302,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 16),
 
           Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(
                 Icons.error_outline_rounded,
@@ -1439,11 +1315,9 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               Expanded(
                 child: Text(
                   'Please accept all declarations to continue.',
-                  style:
-                      GoogleFonts.ibmPlexSans(
+                  style: GoogleFonts.ibmPlexSans(
                     color: Colors.redAccent,
-                    fontSize:
-                        isMobile ? 12 : 14,
+                    fontSize: isMobile ? 12 : 14,
                     height: 1.4,
                   ),
                 ),
@@ -1464,27 +1338,14 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       children: [
         Transform.rotate(
           angle: 0.785398,
-          child: Container(
-            width: 7,
-            height: 7,
-            color: red,
-          ),
+          child: Container(width: 7, height: 7, color: red),
         ),
 
-        Expanded(
-          child: Container(
-            height: 1.5,
-            color: red,
-          ),
-        ),
+        Expanded(child: Container(height: 1.5, color: red)),
 
         Transform.rotate(
           angle: 0.785398,
-          child: Container(
-            width: 7,
-            height: 7,
-            color: red,
-          ),
+          child: Container(width: 7, height: 7, color: red),
         ),
       ],
     );
@@ -1501,11 +1362,9 @@ class _DelegateFormData {
   final contactController = TextEditingController();
   final munExperienceController = TextEditingController();
 
-  final portfolioPreference1Controller =
-      TextEditingController();
+  final portfolioPreference1Controller = TextEditingController();
 
-  final portfolioPreference2Controller =
-      TextEditingController();
+  final portfolioPreference2Controller = TextEditingController();
 
   String? committeePreference1;
   String? committeePreference2;
@@ -1525,10 +1384,7 @@ class _DelegateFormData {
 // ================================================================
 
 class _FormFieldBlock extends StatelessWidget {
-  const _FormFieldBlock({
-    required this.label,
-    required this.child,
-  });
+  const _FormFieldBlock({required this.label, required this.child});
 
   final String label;
   final Widget child;
@@ -1536,12 +1392,9 @@ class _FormFieldBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _UnderlinedLabel(
-          text: label,
-        ),
+        _UnderlinedLabel(text: label),
 
         const SizedBox(height: 12),
 
@@ -1556,10 +1409,7 @@ class _FormFieldBlock extends StatelessWidget {
 // ================================================================
 
 class _UnderlinedLabel extends StatelessWidget {
-  const _UnderlinedLabel({
-    required this.text,
-    this.fontSize = 22,
-  });
+  const _UnderlinedLabel({required this.text, this.fontSize = 22});
 
   final String text;
   final double fontSize;
@@ -1573,14 +1423,8 @@ class _UnderlinedLabel extends StatelessWidget {
         fontSize: fontSize,
         fontWeight: FontWeight.w400,
         decoration: TextDecoration.underline,
-        decorationColor:
-            const Color(0xFFF9F5F4),
-        shadows: const [
-          Shadow(
-            color: Color(0xFF5C1A1B),
-            blurRadius: 16.9,
-          ),
-        ],
+        decorationColor: const Color(0xFFF9F5F4),
+        shadows: const [Shadow(color: Color(0xFF5C1A1B), blurRadius: 16.9)],
       ),
     );
   }
@@ -1591,9 +1435,7 @@ class _UnderlinedLabel extends StatelessWidget {
 // ================================================================
 
 class _RadioCircle extends StatelessWidget {
-  const _RadioCircle({
-    required this.selected,
-  });
+  const _RadioCircle({required this.selected});
 
   final bool selected;
 
@@ -1606,9 +1448,7 @@ class _RadioCircle extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected
-              ? const Color(0xFFC9A86A)
-              : Colors.white,
+          color: selected ? const Color(0xFFC9A86A) : Colors.white,
           width: 2,
         ),
       ),
@@ -1647,39 +1487,27 @@ class _DeclarationItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(6),
       onTap: () => onChanged(!value),
       child: Padding(
-        padding:
-            const EdgeInsets.symmetric(
-          vertical: 2,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AnimatedContainer(
-              duration:
-                  const Duration(milliseconds: 150),
+              duration: const Duration(milliseconds: 150),
               width: isMobile ? 25 : 32,
               height: isMobile ? 25 : 32,
-              margin:
-                  const EdgeInsets.only(top: 2),
+              margin: const EdgeInsets.only(top: 2),
               decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: value
-                      ? const Color(0xFFC9A86A)
-                      : Colors.white,
+                  color: value ? const Color(0xFFC9A86A) : Colors.white,
                   width: 2,
                 ),
-                color: value
-                    ? const Color(0xFFC9A86A)
-                    : Colors.transparent,
+                color: value ? const Color(0xFFC9A86A) : Colors.transparent,
               ),
               child: value
                   ? const Icon(
                       Icons.check_rounded,
-                      color:
-                          Color(0xFF0B132B),
+                      color: Color(0xFF0B132B),
                       size: 20,
                     )
                   : null,
@@ -1690,11 +1518,9 @@ class _DeclarationItem extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style:
-                    GoogleFonts.ibmPlexSans(
+                style: GoogleFonts.ibmPlexSans(
                   color: Colors.white,
-                  fontSize:
-                      isMobile ? 14 : 18,
+                  fontSize: isMobile ? 14 : 18,
                   height: 1.4,
                 ),
               ),
@@ -1722,12 +1548,10 @@ class _AddDelegateButton extends StatefulWidget {
   final bool isLoading;
 
   @override
-  State<_AddDelegateButton> createState() =>
-      _AddDelegateButtonState();
+  State<_AddDelegateButton> createState() => _AddDelegateButtonState();
 }
 
-class _AddDelegateButtonState
-    extends State<_AddDelegateButton> {
+class _AddDelegateButtonState extends State<_AddDelegateButton> {
   bool _hovering = false;
 
   @override
@@ -1751,43 +1575,29 @@ class _AddDelegateButtonState
       child: GestureDetector(
         onTap: widget.isLoading ? null : widget.onTap,
         child: AnimatedContainer(
-          duration:
-              const Duration(milliseconds: 160),
-          width: widget.isMobile
-              ? double.infinity
-              : 260,
+          duration: const Duration(milliseconds: 160),
+          width: widget.isMobile ? double.infinity : 260,
           height: 58,
           decoration: BoxDecoration(
             color: _hovering
                 ? gold.withValues(alpha: 0.12)
                 : Colors.transparent,
-            borderRadius:
-                BorderRadius.circular(16),
-            border: Border.all(
-              color: gold,
-              width: 1.5,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: gold, width: 1.5),
           ),
           child: Row(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.add_rounded,
-                color: gold,
-                size: 24,
-              ),
+              const Icon(Icons.add_rounded, color: gold, size: 24),
 
               const SizedBox(width: 9),
 
               Text(
                 'ADD DELEGATE',
-                style:
-                    GoogleFonts.ibmPlexSans(
+                style: GoogleFonts.ibmPlexSans(
                   color: gold,
                   fontSize: 14,
-                  fontWeight:
-                      FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
                 ),
               ),
@@ -1815,12 +1625,10 @@ class _ProceedButton extends StatefulWidget {
   final bool isLoading;
 
   @override
-  State<_ProceedButton> createState() =>
-      _ProceedButtonState();
+  State<_ProceedButton> createState() => _ProceedButtonState();
 }
 
-class _ProceedButtonState
-    extends State<_ProceedButton> {
+class _ProceedButtonState extends State<_ProceedButton> {
   bool _hovering = false;
 
   @override
@@ -1838,34 +1646,28 @@ class _ProceedButtonState
         });
       },
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: widget.isLoading || widget.onTap == null
+            ? null
+            : () {
+                widget.onTap!();
+              },
         child: AnimatedContainer(
-          duration:
-              const Duration(milliseconds: 180),
-          width: widget.isMobile
-              ? double.infinity
-              : 560,
-          height:
-              widget.isMobile ? 65 : 90,
+          duration: const Duration(milliseconds: 180),
+          width: widget.isMobile ? double.infinity : 560,
+          height: widget.isMobile ? 65 : 90,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: _hovering
                 ? const Color(0xFFD8B978)
                 : const Color(0xFFC9A86A),
-            borderRadius:
-                BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color:
-                    const Color(0xFFC9A86A)
-                        .withValues(
-                  alpha:
-                      _hovering ? 0.45 : 0.33,
-                ),
-                blurRadius:
-                    _hovering ? 80 : 65,
-                spreadRadius:
-                    _hovering ? 15 : 10,
+                color: const Color(
+                  0xFFC9A86A,
+                ).withValues(alpha: _hovering ? 0.45 : 0.33),
+                blurRadius: _hovering ? 80 : 65,
+                spreadRadius: _hovering ? 15 : 10,
               ),
             ],
           ),
@@ -1879,10 +1681,10 @@ class _ProceedButtonState
                   ),
                 )
               : Text(
-                  'PROCEED',
+                  'PROCEED TO PAYMENT',
                   style: GoogleFonts.ibmPlexSerif(
                     color: const Color(0xFF0B132B),
-                    fontSize: widget.isMobile ? 23 : 32,
+                    fontSize: widget.isMobile ? 19 : 28,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -1892,15 +1694,177 @@ class _ProceedButtonState
   }
 }
 
+class _PaymentSummarySheet extends StatelessWidget {
+  const _PaymentSummarySheet({
+    required this.title,
+    required this.delegateCount,
+    required this.perHeadAmountPaise,
+    required this.subtotalAmountPaise,
+    required this.onPayNow,
+  });
+
+  final String title;
+  final int delegateCount;
+  final int perHeadAmountPaise;
+  final int subtotalAmountPaise;
+  final VoidCallback onPayNow;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF111A33),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFF5C1A1B), width: 1.4),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x59000000),
+                blurRadius: 30,
+                offset: Offset(0, 14),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0x55F9F5F4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Text(
+                  'Payment Summary',
+                  style: GoogleFonts.prata(
+                    color: const Color(0xFFC9A86A),
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  style: GoogleFonts.ibmPlexSans(
+                    color: const Color(0xFFF9F5F4),
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _SummaryRow(
+                  label: 'Per delegate',
+                  value: _formatAmount(perHeadAmountPaise),
+                ),
+                const SizedBox(height: 12),
+                _SummaryRow(label: 'Delegates', value: '$delegateCount'),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 1,
+                  color: const Color(0x335C1A1B),
+                ),
+                const SizedBox(height: 16),
+                _SummaryRow(
+                  label: 'Subtotal',
+                  value: _formatAmount(subtotalAmountPaise),
+                  emphasize: true,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: onPayNow,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC9A86A),
+                      foregroundColor: const Color(0xFF0B132B),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    child: Text(
+                      'PAY NOW',
+                      style: GoogleFonts.prata(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatAmount(int amountPaise) {
+    return 'INR ${(amountPaise / 100).toStringAsFixed(0)}';
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  final String label;
+  final String value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    final valueColor = emphasize
+        ? const Color(0xFFC9A86A)
+        : const Color(0xFFF9F5F4);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.ibmPlexSans(
+              color: const Color(0xFFF9F5F4),
+              fontSize: 15,
+              fontWeight: emphasize ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.ibmPlexSans(
+            color: valueColor,
+            fontSize: emphasize ? 18 : 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ================================================================
 // COMMITTEE DATA
 // ================================================================
 
 class _Committee {
-  const _Committee({
-    required this.value,
-    required this.label,
-  });
+  const _Committee({required this.value, required this.label});
 
   final String value;
   final String label;
