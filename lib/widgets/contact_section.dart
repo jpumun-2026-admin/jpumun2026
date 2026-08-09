@@ -87,27 +87,14 @@ class ContactSection extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxContentWidth),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top ornamental divider
-              const _SectionDivider(),
-
-              const SizedBox(height: 34),
-
-              // CONTACT
-              Text(
-                'C O N T A C T',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.ibmPlexSans(
-                  color: _gold,
-                  fontSize: sectionFontSize,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: sectionLetterSpacing,
-                  height: 1,
-                ),
+              _buildSectionLabel(
+                fontSize: sectionFontSize,
+                letterSpacing: sectionLetterSpacing,
               ),
 
-              const SizedBox(height: 58),
+              const SizedBox(height: 48),
 
               // General contact information
               _ContactCard(
@@ -117,10 +104,7 @@ class ContactSection extends StatelessWidget {
                 titleFontSize: titleFontSize,
                 bodyFontSize: bodyFontSize,
                 children: const [
-                  _ContactLine(
-                    label: 'Email:',
-                    value: 'munsocjgi@gmail.com',
-                  ),
+                  _ContactLine(label: 'Email:', value: 'munsocjgi@gmail.com'),
 
                   SizedBox(height: 28),
 
@@ -191,6 +175,22 @@ class ContactSection extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildSectionLabel({
+    required double fontSize,
+    required double letterSpacing,
+  }) {
+    return Text(
+      'CONTACT',
+      style: GoogleFonts.ibmPlexSans(
+        color: _gold,
+        fontSize: fontSize,
+        fontWeight: FontWeight.w400,
+        letterSpacing: letterSpacing,
+        height: 1.2,
+      ),
+    );
+  }
 }
 
 class _ContactCard extends StatelessWidget {
@@ -214,19 +214,11 @@ class _ContactCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        padding,
-        padding,
-        padding,
-        padding + 2,
-      ),
+      padding: EdgeInsets.fromLTRB(padding, padding, padding, padding + 2),
       decoration: BoxDecoration(
         color: ContactSection._cardBackground,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: ContactSection._red,
-          width: 1.5,
-        ),
+        border: Border.all(color: ContactSection._red, width: 1.5),
       ),
       child: DefaultTextStyle(
         style: GoogleFonts.ibmPlexSans(
@@ -259,10 +251,7 @@ class _ContactCard extends StatelessWidget {
 }
 
 class _ContactLine extends StatelessWidget {
-  const _ContactLine({
-    required this.label,
-    required this.value,
-  });
+  const _ContactLine({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -290,42 +279,6 @@ class _ContactLine extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SectionDivider extends StatelessWidget {
-  const _SectionDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Transform.rotate(
-          angle: 0.785398,
-          child: Container(
-            width: 7,
-            height: 7,
-            color: ContactSection._red,
-          ),
-        ),
-
-        Expanded(
-          child: Container(
-            height: 1.4,
-            color: ContactSection._red,
-          ),
-        ),
-
-        Transform.rotate(
-          angle: 0.785398,
-          child: Container(
-            width: 7,
-            height: 7,
-            color: ContactSection._red,
-          ),
-        ),
-      ],
     );
   }
 }

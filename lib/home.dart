@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,11 +19,26 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _homeKey = GlobalKey();
+  final GlobalKey _aboutKey = GlobalKey();
+  final GlobalKey _committeesKey = GlobalKey();
+  final GlobalKey _resourcesKey = GlobalKey();
+  final GlobalKey _registrationKey = GlobalKey();
+  final GlobalKey _contactKey = GlobalKey();
 
   late Timer _timer;
   late Duration _remaining;
 
   final DateTime _targetDate = DateTime(2026, 8, 31);
+
+  static const List<_NavItemData> _navItems = [
+    _NavItemData(label: 'HOME', section: _HomeSection.home),
+    _NavItemData(label: 'ABOUT', section: _HomeSection.about),
+    _NavItemData(label: 'COMMITTEES', section: _HomeSection.committees),
+    _NavItemData(label: 'RESOURCES', section: _HomeSection.resources),
+    _NavItemData(label: 'REGISTRATION', section: _HomeSection.registration),
+    _NavItemData(label: 'CONTACT', section: _HomeSection.contact),
+  ];
 
   @override
   void initState() {
@@ -47,17 +63,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _scrollDown() {
-    if (!_scrollController.hasClients) return;
-
-    _scrollController.animateTo(
-      MediaQuery.sizeOf(context).height,
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeInOutCubic,
-    );
-  }
-
-  String _twoDigits(int value) {
-    return value.toString().padLeft(2, '0');
+    _scrollToSection(_HomeSection.about);
   }
 
   @override
@@ -73,27 +79,60 @@ class _HomePageState extends State<HomePage> {
     final hours = _remaining.inHours.remainder(24);
     final minutes = _remaining.inMinutes.remainder(60);
     final seconds = _remaining.inSeconds.remainder(60);
+    final isMobile = MediaQuery.sizeOf(context).width < 900;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0C1630),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            _buildHeroSection(
-              days: days,
-              hours: hours,
-              minutes: minutes,
-              seconds: seconds,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                KeyedSubtree(
+                  key: _homeKey,
+                  child: _buildHeroSection(
+                    days: days,
+                    hours: hours,
+                    minutes: minutes,
+                    seconds: seconds,
+                  ),
+                ),
+                KeyedSubtree(key: _aboutKey, child: AboutSection()),
+                ThemeSection(),
+                KeyedSubtree(key: _committeesKey, child: CommitteesSection()),
+                KeyedSubtree(key: _resourcesKey, child: ResourcesSection()),
+                KeyedSubtree(
+                  key: _registrationKey,
+                  child: RegistrationSection(),
+                ),
+                KeyedSubtree(key: _contactKey, child: ContactSection()),
+              ],
             ),
-            AboutSection(),
-            ThemeSection(),
-            CommitteesSection(),
-            ResourcesSection(),
-            RegistrationSection(),
-            ContactSection(),
-          ],
-        ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 16 : 24,
+                isMobile ? 14 : 20,
+                isMobile ? 16 : 24,
+                0,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: isMobile
+                    ? _MobileNavigationBar(
+                        items: _navItems,
+                        onSelected: _handleMobileNavSelection,
+                      )
+                    : _DesktopFloatingAppBar(
+                        items: _navItems,
+                        onSelected: _scrollToSection,
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -214,21 +253,262 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _scrollToRegistration() {
-    if (!_scrollController.hasClients) return;
+    _scrollToSection(_HomeSection.registration);
+  }
 
-    // Registration is the sixth homepage section. This intentionally scrolls
-    // to it rather than choosing individual/institutional registration for
-    // the visitor.
-    final viewport = MediaQuery.sizeOf(context).height;
-    final target = (viewport * 5.0).clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
+  Future<void> _handleMobileNavSelection(_HomeSection section) async {
+    Navigator.of(context).maybePop();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    _scrollToSection(section);
+  }
 
-    _scrollController.animateTo(
-      target,
-      duration: const Duration(milliseconds: 900),
+  void _scrollToSection(_HomeSection section) {
+    final targetKey = switch (section) {
+      _HomeSection.home => _homeKey,
+      _HomeSection.about => _aboutKey,
+      _HomeSection.committees => _committeesKey,
+      _HomeSection.resources => _resourcesKey,
+      _HomeSection.registration => _registrationKey,
+      _HomeSection.contact => _contactKey,
+    };
+
+    final targetContext = targetKey.currentContext;
+    if (targetContext == null) return;
+
+    Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 850),
       curve: Curves.easeInOutCubic,
+      alignment: 0,
+    );
+  }
+}
+
+enum _HomeSection { home, about, committees, resources, registration, contact }
+
+class _NavItemData {
+  const _NavItemData({required this.label, required this.section});
+
+  final String label;
+  final _HomeSection section;
+}
+
+class _DesktopFloatingAppBar extends StatelessWidget {
+  const _DesktopFloatingAppBar({required this.items, required this.onSelected});
+
+  final List<_NavItemData> items;
+  final ValueChanged<_HomeSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xCC081224),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: const Color(0x66C9A86A)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x44000000),
+                blurRadius: 24,
+                offset: Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final item in items)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _NavPillButton(
+                    label: item.label,
+                    onTap: () => onSelected(item.section),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileNavigationBar extends StatelessWidget {
+  const _MobileNavigationBar({required this.items, required this.onSelected});
+
+  final List<_NavItemData> items;
+  final ValueChanged<_HomeSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xE6081224),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0x55C9A86A)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'JPUMUN 2026',
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFFF9F5F4),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.8,
+              ),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(999),
+              onTap: () => _openMenu(context),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: const Color(0x55C9A86A)),
+                ),
+                child: const Icon(
+                  Icons.menu_rounded,
+                  color: Color(0xFFC9A86A),
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openMenu(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color(0xAA000000),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xF20B132B),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: const Color(0x66C9A86A)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 18),
+                      Container(
+                        width: 46,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0x55F9F5F4),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      for (final item in items)
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 4,
+                          ),
+                          title: Text(
+                            item.label,
+                            style: GoogleFonts.ibmPlexSans(
+                              color: const Color(0xFFF9F5F4),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.4,
+                            ),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_outward_rounded,
+                            color: Color(0xFFC9A86A),
+                            size: 18,
+                          ),
+                          onTap: () => onSelected(item.section),
+                        ),
+                      const SizedBox(height: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _NavPillButton extends StatefulWidget {
+  const _NavPillButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_NavPillButton> createState() => _NavPillButtonState();
+}
+
+class _NavPillButtonState extends State<_NavPillButton> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: _hovering ? const Color(0x26C9A86A) : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text(
+                widget.label,
+                style: GoogleFonts.ibmPlexSans(
+                  color: const Color(0xFFF9F5F4),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.6,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
