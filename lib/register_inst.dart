@@ -77,6 +77,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       label: 'Disarmament and International Security Committee (DISEC)',
     ),
   ];
+  static const List<String> _classes = ['11th Class', '12th Class'];
 
   // ============================================================
   // DISPOSE
@@ -201,6 +202,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     for (int i = 0; i < _delegates.length; i++) {
       final delegate = _delegates[i];
 
+      if (delegate.selectedClass == null) {
+        _showMessage('Please select the class for Delegate ${i + 1}.');
+        return;
+      }
+
       if (delegate.committeePreference1 == null ||
           delegate.committeePreference2 == null) {
         _showMessage(
@@ -249,6 +255,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               'full_name': delegate.nameController.text.trim(),
               'email': delegate.emailController.text.trim(),
               'contact': delegate.contactController.text.trim(),
+              'class': delegate.selectedClass,
               'mun_experience': delegate.munExperienceController.text.trim(),
               'committee_preference_1': delegate.committeePreference1,
               'committee_preference_2': delegate.committeePreference2,
@@ -322,12 +329,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
       if (!mounted) return;
 
-      _showMessage(
-        registrationId == null
-            ? 'Payment successful. Institutional registration submitted.'
-            : 'Payment successful. Institutional registration submitted. '
-                  'ID: $registrationId'
-                  '${delegatesSaved == null ? '' : ' • Delegates saved: $delegatesSaved'}',
+      await _showSuccessDialog(
+        title: 'Registration Successful',
+        message: registrationId == null
+            ? 'Your payment was confirmed and the institutional registration has been submitted successfully.'
+            : 'Your payment was confirmed and the institutional registration has been submitted successfully.\n\nRegistration ID: $registrationId${delegatesSaved == null ? '' : '\nDelegates saved: $delegatesSaved'}',
       );
     } on RazorpayApiException catch (error) {
       if (!mounted) return;
@@ -444,6 +450,73 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         content: Text(message, style: GoogleFonts.ibmPlexSans(color: white)),
       ),
     );
+  }
+
+  Future<void> _showSuccessDialog({
+    required String title,
+    required String message,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: fieldBackground,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: red, width: 1.4),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+          contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          title: Text(
+            title,
+            style: GoogleFonts.prata(
+              color: gold,
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
+            message,
+            style: GoogleFonts.ibmPlexSans(
+              color: white,
+              fontSize: 15,
+              height: 1.6,
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: gold,
+                  foregroundColor: background,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: Text(
+                  'BACK TO HOME',
+                  style: GoogleFonts.prata(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
   }
 
   // ============================================================
@@ -1035,6 +1108,29 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
           const SizedBox(height: 32),
 
+          if (isMobile) ...[
+            _FormFieldBlock(
+              label: 'Class',
+              child: _buildClassDropdown(delegate),
+            ),
+
+            const SizedBox(height: 32),
+          ] else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _FormFieldBlock(
+                    label: 'Class',
+                    child: _buildClassDropdown(delegate),
+                  ),
+                ),
+                const Expanded(child: SizedBox()),
+              ],
+            ),
+
+          if (!isMobile) const SizedBox(height: 32),
+
           // MUN Experience
           _FormFieldBlock(
             label: 'MUN Experience (if any)',
@@ -1179,6 +1275,44 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
       borderSide: BorderSide(color: color, width: width),
+    );
+  }
+
+  Widget _buildClassDropdown(_DelegateFormData delegate) {
+    return DropdownButtonFormField<String>(
+      initialValue: delegate.selectedClass,
+      dropdownColor: fieldBackground,
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: white),
+      style: GoogleFonts.ibmPlexSans(color: white, fontSize: 17),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: fieldBackground,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 17,
+        ),
+        border: _inputBorder(gold),
+        enabledBorder: _inputBorder(gold),
+        focusedBorder: _inputBorder(gold, width: 2),
+        errorBorder: _inputBorder(Colors.redAccent),
+      ),
+      items: _classes
+          .map(
+            (value) =>
+                DropdownMenuItem<String>(value: value, child: Text(value)),
+          )
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          delegate.selectedClass = value;
+        });
+      },
+      validator: (value) {
+        if (value == null) {
+          return 'Please select a class';
+        }
+        return null;
+      },
     );
   }
 
@@ -1366,6 +1500,7 @@ class _DelegateFormData {
 
   final portfolioPreference2Controller = TextEditingController();
 
+  String? selectedClass;
   String? committeePreference1;
   String? committeePreference2;
 

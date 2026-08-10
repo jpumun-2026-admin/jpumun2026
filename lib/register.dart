@@ -59,14 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
   static const Color red = Color(0xFF5C1A1B);
   static const Color white = Color(0xFFF9F5F4);
 
-  static const List<String> _classes = [
-    'PUC I',
-    'PUC II',
-    'Grade 11',
-    'Grade 12',
-    'Undergraduate',
-    'Other',
-  ];
+  static const List<String> _classes = ['11th Class', '12th Class'];
 
   static const List<_Committee> _committees = [
     _Committee(value: 'CCC', label: 'Continuous Crisis Committee (CCC)'),
@@ -241,10 +234,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (!mounted) return;
 
-      _showMessage(
-        registrationId == null
-            ? 'Payment successful. Registration submitted successfully.'
-            : 'Payment successful. Registration submitted. ID: $registrationId',
+      await _showSuccessDialog(
+        title: 'Registration Successful',
+        message: registrationId == null
+            ? 'Your payment was confirmed and your registration has been submitted successfully.'
+            : 'Your payment was confirmed and your registration has been submitted successfully.\n\nRegistration ID: $registrationId',
       );
     } on RazorpayApiException catch (error) {
       if (!mounted) return;
@@ -361,6 +355,73 @@ class _RegisterPageState extends State<RegisterPage> {
         content: Text(message, style: GoogleFonts.ibmPlexSans(color: white)),
       ),
     );
+  }
+
+  Future<void> _showSuccessDialog({
+    required String title,
+    required String message,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: fieldBackground,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: red, width: 1.4),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+          contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          title: Text(
+            title,
+            style: GoogleFonts.prata(
+              color: gold,
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
+            message,
+            style: GoogleFonts.ibmPlexSans(
+              color: white,
+              fontSize: 15,
+              height: 1.6,
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: gold,
+                  foregroundColor: background,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: Text(
+                  'BACK TO HOME',
+                  style: GoogleFonts.prata(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
   }
 
   // ============================================================
