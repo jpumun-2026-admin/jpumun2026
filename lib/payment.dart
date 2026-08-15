@@ -399,9 +399,6 @@ class _PaymentPageState extends State<PaymentPage> {
             text: 'Keep your UTR / Transaction ID ready after payment.',
           ),
           const SizedBox(height: 12),
-          _InstructionLine(
-            text: 'Your payment will be manually verified by the Secretariat.',
-          ),
         ],
       ),
     );
@@ -563,24 +560,6 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
             ),
           ],
-          const SizedBox(height: 26),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0x1AF9F5F4),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0x335C1A1B)),
-            ),
-            child: Text(
-              'Your payment proof will be reviewed manually. Your status will be marked as AWAITING VERIFICATION after submission.',
-              style: GoogleFonts.ibmPlexSans(
-                color: white,
-                fontSize: 14,
-                height: 1.6,
-              ),
-            ),
-          ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -643,7 +622,7 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Your registration has been recorded and your payment proof has been sent to the Secretariat for manual verification.',
+            'Your registration has been submitted successfully!',
             style: GoogleFonts.ibmPlexSans(
               color: white,
               fontSize: isMobile ? 15 : 18,
@@ -676,7 +655,7 @@ class _PaymentPageState extends State<PaymentPage> {
               border: Border.all(color: gold.withValues(alpha: 0.4)),
             ),
             child: Text(
-              'Please wait for the organizer to review your UTR and screenshot. You will not be marked as verified until the payment proof has been manually checked.',
+              'For further information regarding the event, please wait until your payment has been verified',
               style: GoogleFonts.ibmPlexSans(
                 color: white,
                 fontSize: 15,

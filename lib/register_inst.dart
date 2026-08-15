@@ -1663,116 +1663,123 @@ class _PaymentSummarySheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF111A33),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: const Color(0xFF5C1A1B), width: 1.4),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x59000000),
-                blurRadius: 30,
-                offset: Offset(0, 14),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF111A33),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(28),
+                topRight: Radius.circular(28),
               ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 48,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0x55F9F5F4),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Text(
-                  'Payment Summary',
-                  style: GoogleFonts.prata(
-                    color: const Color(0xFFC9A86A),
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  title,
-                  style: GoogleFonts.ibmPlexSans(
-                    color: const Color(0xFFF9F5F4),
-                    fontSize: 15,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _SummaryRow(
-                  label: 'Per delegate',
-                  value: _formatAmount(perHeadAmountPaise),
-                ),
-                const SizedBox(height: 12),
-                _SummaryRow(label: 'Delegates', value: '$delegateCount'),
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  height: 1,
-                  color: const Color(0x335C1A1B),
-                ),
-                const SizedBox(height: 16),
-                _SummaryRow(
-                  label: 'Subtotal',
-                  value: _formatAmount(subtotalAmountPaise),
-                  emphasize: true,
-                ),
-                const SizedBox(height: 18),
-                Center(
-                  child: TextButton(
-                    onPressed: onViewPolicies,
-                    child: Text(
-                      'Terms and Conditions',
-                      style: GoogleFonts.ibmPlexSans(
-                        color: const Color(0xFFC9A86A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        decorationColor: const Color(0xFFC9A86A),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: onPayNow,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC9A86A),
-                      foregroundColor: const Color(0xFF0B132B),
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    child: Text(
-                      'CONTINUE',
-                      style: GoogleFonts.prata(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+              border: Border.all(color: const Color(0xFF5C1A1B), width: 1.4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x59000000),
+                  blurRadius: 30,
+                  offset: Offset(0, 14),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0x55F9F5F4),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    'Payment Summary',
+                    style: GoogleFonts.prata(
+                      color: const Color(0xFFC9A86A),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    title,
+                    style: GoogleFonts.ibmPlexSans(
+                      color: const Color(0xFFF9F5F4),
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _SummaryRow(
+                    label: 'Per delegate',
+                    value: _formatAmount(perHeadAmountPaise),
+                  ),
+                  const SizedBox(height: 12),
+                  _SummaryRow(label: 'Delegates', value: '$delegateCount'),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    height: 1,
+                    color: const Color(0x335C1A1B),
+                  ),
+                  const SizedBox(height: 16),
+                  _SummaryRow(
+                    label: 'Subtotal',
+                    value: _formatAmount(subtotalAmountPaise),
+                    emphasize: true,
+                  ),
+                  const SizedBox(height: 18),
+                  Center(
+                    child: TextButton(
+                      onPressed: onViewPolicies,
+                      child: Text(
+                        'Terms and Conditions',
+                        style: GoogleFonts.ibmPlexSans(
+                          color: const Color(0xFFC9A86A),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: const Color(0xFFC9A86A),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: onPayNow,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC9A86A),
+                        foregroundColor: const Color(0xFF0B132B),
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: Text(
+                        'CONTINUE',
+                        style: GoogleFonts.prata(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

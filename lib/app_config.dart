@@ -4,7 +4,7 @@ const String kRegistrationApiUrl =
 const int kIndividualRegistrationFeePaise = 95000;
 const int kInstitutionalRegistrationFeePerDelegatePaise = 95000;
 
-const String kUpiId = 'REPLACE_WITH_JPUMUN_UPI_ID';
+const String kUpiId = 'lavanyaluna@okaxis';
 const String kUpiQrAsset = 'lib/assets/upi_qr.png';
 
 const int kMaxPaymentScreenshotBytes = 5 * 1024 * 1024;
