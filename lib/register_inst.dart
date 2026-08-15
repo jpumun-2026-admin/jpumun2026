@@ -606,15 +606,6 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Institutional Delegation Registration',
-          style: GoogleFonts.ibmPlexSerif(
-            color: white,
-            fontSize: isMobile ? 24 : 32,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-
         const SizedBox(height: 20),
 
         Text(
