@@ -1,5 +1,5 @@
 const String kRegistrationApiUrl =
-    'hhttps://script.google.com/macros/s/AKfycbyr7qpodZ6CBgz70Rge_hT1FV6On6Ll2ELlgELXbvcp2tod9Lj6T_JP1Tl9E8AGVr6p/exec';
+    'https://script.google.com/macros/s/AKfycbyr7qpodZ6CBgz70Rge_hT1FV6On6Ll2ELlgELXbvcp2tod9Lj6T_JP1Tl9E8AGVr6p/exec';
 
 const int kIndividualRegistrationFeePaise = 95000;
 const int kInstitutionalRegistrationFeePerDelegatePaise = 95000;

@@ -19,6 +19,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'JPUMUN 2026 | Jain PU Model United Nations',
       initialRoute: '/home',
       routes: {
         '/home': (context) => HomePage(),

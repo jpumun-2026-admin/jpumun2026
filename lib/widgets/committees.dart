@@ -44,7 +44,7 @@ class CommitteesSection extends StatelessWidget {
           'fixed agenda known in advance. Decisions made in one session '
           "ripple directly into the next, testing delegates' ability to "
           'think on their feet and adapt under pressure.',
-      agenda: 'Classified — to be revealed at the conference.',
+      agenda: 'Classified',
     ),
   ];
 

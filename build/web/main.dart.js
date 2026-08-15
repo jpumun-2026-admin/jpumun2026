@@ -10024,12 +10024,13 @@ ZO:function ZO(a){this.a=a},
 aMT(){return new A.z8(new A.a7n(),A.p(t.K,t.Qu))},
 ahH:function ahH(a,b){this.a=a
 this.b=b},
-zT:function zT(a,b,c,d,e){var _=this
+zT:function zT(a,b,c,d,e,f){var _=this
 _.f=a
 _.r=b
 _.w=c
-_.R8=d
-_.a=e},
+_.cx=d
+_.R8=e
+_.a=f},
 a7n:function a7n(){},
 a9y:function a9y(){},
 ES:function ES(){this.d=$
@@ -26363,7 +26364,7 @@ aCP(a){return new A.n3(a)},
 N8(a){var s=0,r=A.O(t.a),q,p,o,n
 var $async$N8=A.P(function(b,c){if(b===1)return A.L(c,r)
 for(;;)switch(s){case 0:s=3
-return A.J(A.aV4(A.fu("hhttps://script.google.com/macros/s/AKfycbyr7qpodZ6CBgz70Rge_hT1FV6On6Ll2ELlgELXbvcp2tod9Lj6T_JP1Tl9E8AGVr6p/exec",0,null),B.d2.VE(a,null),B.MK),$async$N8)
+return A.J(A.aV4(A.fu("https://script.google.com/macros/s/AKfycbyr7qpodZ6CBgz70Rge_hT1FV6On6Ll2ELlgELXbvcp2tod9Lj6T_JP1Tl9E8AGVr6p/exec",0,null),B.d2.VE(a,null),B.MK),$async$N8)
 case 3:o=c
 n=o.b
 if(n<200||n>=300)throw A.i(A.aCP("Server returned HTTP "+n+"."))
@@ -47643,11 +47644,11 @@ j.a.toString
 s=A.a1i(k,l,i,i,m)
 k=A.aA1(new A.Bp(s,i),B.N,o,B.Y)
 return k},
-a5k(a){var s,r=this,q=null,p=r.a,o=p.f,n=p.r
-p=p.w
+a5k(a){var s,r=this,q=null,p=r.a,o=p.f,n=p.r,m=p.w
+p=p.cx
 s=r.gad4()
 r.a.toString
-return new A.Dj(q,p,q,new A.anN(),q,q,q,q,q,q,o,q,q,n,B.Kq,r.gadb(),"",q,B.Vb,B.i7,q,s,q,q,B.pq,!1,!1,q,q,q,new A.oZ(r,t.bT))},
+return new A.Dj(q,m,q,new A.anN(),q,q,q,q,q,q,o,q,q,n,B.Kq,r.gadb(),p,q,B.Vb,B.i7,q,s,q,q,B.pq,!1,!1,q,q,q,new A.oZ(r,t.bT))},
 H(a){var s,r=this.a5k(a)
 this.a.toString
 s=this.d
@@ -86338,7 +86339,7 @@ A.as7.prototype={
 $0(){this.a.d=!1},
 $S:0}
 A.LY.prototype={
-H(a){return new A.zT(A.an(["/home",new A.a7e(),"/policies",new A.a7f(),"/register",new A.a7g(),"/register-institute",new A.a7h()],t.N,t.Ab),"/home",new A.a7i(),!1,null)}}
+H(a){return new A.zT(A.an(["/home",new A.a7e(),"/policies",new A.a7f(),"/register",new A.a7g(),"/register-institute",new A.a7h()],t.N,t.Ab),"/home",new A.a7i(),"JPUMUN 2026 | Jain PU Model United Nations",!1,null)}}
 A.a7e.prototype={
 $1(a){return new A.mq(null)},
 $S:204}
@@ -93373,6 +93374,10 @@ B.l3=s([!0,!1],t.HZ)
 B.CL=new A.b_(0,B.A,B.jE,B.e,10)
 B.KZ=s([B.CL],t.V)
 B.L0=s(["pointerdown","pointermove","pointerleave","pointerup","pointercancel","touchstart","touchend","touchmove","touchcancel","mousedown","mousemove","mouseleave","mouseup","wheel"],t.s)
+B.YT=new A.va("AIPPM","All India Political Parties Meet","The AIPPM recreates the high-stakes floor of Indian politics, where representatives of national and regional parties come together to debate matters of urgent national concern. Delegates will need to balance party ideology, coalition politics, public sentiment, and national interest as they work toward \u2014 or resist \u2014 consensus.","Deliberation on India's National Security Strategy following a major cross-border terror attack.")
+B.YV=new A.va("DISEC","Disarmament and International Security Committee","DISEC brings together the world's nations to address one of the most enduring challenges in international security \u2014 the control and reduction of weapons capable of mass devastation. Delegates will navigate competing national interests, existing treaty frameworks, and the technological shifts reshaping global deterrence.","Nuclear risk reduction and arms control in the 21st century.")
+B.YU=new A.va("CCC","Continuous Crisis Committee","The CCC is a fast-paced, high-intensity committee where delegates respond in real time to a rapidly evolving situation, with no fixed agenda known in advance. Decisions made in one session ripple directly into the next, testing delegates' ability to think on their feet and adapt under pressure.","Classified")
+B.e1=s([B.YT,B.YV,B.YU],A.ao("z<va>"))
 B.L1=s([B.dY,B.hM,B.hN,B.l,B.a9,B.at,B.D,B.oN,B.kU],A.ao("z<eJ>"))
 B.L2=s([0.015176349177441876,0.045529047532325624,0.07588174588720938,0.10623444424209313,0.13658714259697685,0.16693984095186062,0.19729253930674434,0.2276452376616281,0.2579979360165119,0.28835063437139563,0.3188300904430532,0.350925934958123,0.3848314933096426,0.42057480301049466,0.458183274052838,0.4976837250274023,0.5391024159806381,0.5824650784040898,0.6277969426914107,0.6751227633498623,0.7244668422128921,0.775853049866786,0.829304845476233,0.8848452951698498,0.942497089126609,1.0022825574869039,1.0642236851973577,1.1283421258858297,1.1946592148522128,1.2631959812511864,1.3339731595349034,1.407011200216447,1.4823302800086415,1.5599503113873272,1.6398909516233677,1.7221716113234105,1.8068114625156377,1.8938294463134073,1.9832442801866852,2.075074464868551,2.1693382909216234,2.2660538449872063,2.36523901573795,2.4669114995532007,2.5710888059345764,2.6777882626779785,2.7870270208169257,2.898822059350997,3.0131901897720907,3.1301480604002863,3.2497121605402226,3.3718988244681087,3.4967242352587946,3.624204428461639,3.754355295633311,3.887192587735158,4.022731918402185,4.160988767090289,4.301978482107941,4.445716283538092,4.592217266055746,4.741496401646282,4.893568542229298,5.048448422192488,5.20615066083972,5.3666897647573375,5.5300801301023865,5.696336044816294,5.865471690767354,6.037501145825082,6.212438385869475,6.390297286737924,6.571091626112461,6.7548350853498045,6.941541251256611,7.131223617812143,7.323895587840543,7.5195704746346665,7.7182615035334345,7.919981813454504,8.124744458384042,8.332562408825165,8.543448553206703,8.757415699253682,8.974476575321063,9.194643831691977,9.417930041841839,9.644347703669503,9.873909240696694,10.106627003236781,10.342513269534024,10.58158024687427,10.8238400726681,11.069304815507364,11.317986476196008,11.569896988756009,11.825048221409341,12.083451977536606,12.345119996613247,12.610063955123938,12.878295467455942,13.149826086772048,13.42466730586372,13.702830557985108,13.984327217668513,14.269168601521828,14.55736596900856,14.848930523210871,15.143873411576273,15.44220572664832,15.743938506781891,16.04908273684337,16.35764934889634,16.66964922287304,16.985093187232053,17.30399201960269,17.62635644741625,17.95219714852476,18.281524751807332,18.614349837764564,18.95068293910138,19.290534541298456,19.633915083172692,19.98083495742689,20.331304511189067,20.685334046541502,21.042933821039977,21.404114048223256,21.76888489811322,22.137256497705877,22.50923893145328,22.884842241736916,23.264076429332462,23.6469514538663,24.033477234264016,24.42366364919083,24.817520537484558,25.21505769858089,25.61628489293138,26.021211842414342,26.429848230738664,26.842203703840827,27.258287870275353,27.678110301598522,28.10168053274597,28.529008062403893,28.96010235337422,29.39497283293396,29.83362889318845,30.276079891419332,30.722335150426627,31.172403958865512,31.62629557157785,32.08401920991837,32.54558406207592,33.010999283389665,33.4802739966603,33.953417292456834,34.430438229418264,34.911345834551085,35.39614910352207,35.88485700094671,36.37747846067349,36.87402238606382,37.37449765026789,37.87891309649659,38.38727753828926,38.89959975977785,39.41588851594697,39.93615253289054,40.460400508064545,40.98864111053629,41.520882981230194,42.05713473317016,42.597404951718396,43.141702194811224,43.6900349931913,44.24241185063697,44.798841244188324,45.35933162437017,45.92389141541209,46.49252901546552,47.065252796817916,47.64207110610409,48.22299226451468,48.808024568002054,49.3971762874833,49.9904556690408,50.587870934119984,51.189430279724725,51.79514187861014,52.40501387947288,53.0190544071392,53.637271562750364,54.259673423945976,54.88626804504493,55.517063457223934,56.15206766869424,56.79128866487574,57.43473440856916,58.08241284012621,58.734331877617365,59.39049941699807,60.05092333227251,60.715611475655585,61.38457167773311,62.057811747619894,62.7353394731159,63.417162620860914,64.10328893648692,64.79372614476921,65.48848194977529,66.18756403501224,66.89098006357258,67.59873767827808,68.31084450182222,69.02730813691093,69.74813616640164,70.47333615344107,71.20291564160104,71.93688215501312,72.67524319850172,73.41800625771542,74.16517879925733,74.9167682708136,75.67278210128072,76.43322770089146,77.1981124613393,77.96744375590167,78.74122893956174,79.51947534912904,80.30219030335869,81.08938110306934,81.88105503125999,82.67721935322541,83.4778813166706,84.28304815182372,85.09272707154808,85.90692527145302,86.72564993000343,87.54890820862819,88.3767072518277,89.2090541872801,90.04595612594655,90.88742016217518,91.73345337380438,92.58406282226491,93.43925555268066,94.29903859396902,95.16341895893969,96.03240364439274,96.9059996312159,97.78421388448044,98.6670533535366,99.55452497210776],t.n)
 B.Po=new A.ac(0.7078,8.3194)
@@ -93389,10 +93394,6 @@ B.Ph=new A.ac(0.9594,1.3212)
 B.Pl=new A.ac(0.9653,1.3032)
 B.Pu=new A.ac(0.9705,1.288)
 B.pA=s([B.Po,B.Pg,B.Pz,B.Pc,B.Pj,B.Pd,B.Pf,B.Pe,B.Pk,B.Pa,B.Ph,B.Pl,B.Pu],A.ao("z<+(K,K)>"))
-B.YT=new A.va("AIPPM","All India Political Parties Meet","The AIPPM recreates the high-stakes floor of Indian politics, where representatives of national and regional parties come together to debate matters of urgent national concern. Delegates will need to balance party ideology, coalition politics, public sentiment, and national interest as they work toward \u2014 or resist \u2014 consensus.","Deliberation on India's National Security Strategy following a major cross-border terror attack.")
-B.YU=new A.va("DISEC","Disarmament and International Security Committee","DISEC brings together the world's nations to address one of the most enduring challenges in international security \u2014 the control and reduction of weapons capable of mass devastation. Delegates will navigate competing national interests, existing treaty frameworks, and the technological shifts reshaping global deterrence.","Nuclear risk reduction and arms control in the 21st century.")
-B.YV=new A.va("CCC","Continuous Crisis Committee","The CCC is a fast-paced, high-intensity committee where delegates respond in real time to a rapidly evolving situation, with no fixed agenda known in advance. Decisions made in one session ripple directly into the next, testing delegates' ability to think on their feet and adapt under pressure.","Classified \u2014 to be revealed at the conference.")
-B.e1=s([B.YT,B.YU,B.YV],A.ao("z<va>"))
 B.r=new A.zO(0,"ignored")
 B.aV=new A.f(4294967304)
 B.fc=new A.f(4294967323)
