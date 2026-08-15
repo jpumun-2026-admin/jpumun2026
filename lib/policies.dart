@@ -62,7 +62,7 @@ class PoliciesPage extends StatelessWidget {
                       title: 'Terms and Conditions',
                       paragraphs: const [
                         'By submitting a registration for JPUMUN 2026, the participant or institution confirms that all information provided is accurate and complete.',
-                        'Registration is valid only after successful payment confirmation and acceptance of the declarations in the registration form.',
+                        'Registration is valid only after the registration form is submitted, payment proof is uploaded, and the payment is manually verified by the Secretariat.',
                         'Each delegate must submit two committee preferences and the corresponding portfolio preferences in the registration form.',
                         'The Secretariat reserves the right to verify submitted information and communicate allocations, updates, and logistical details through the provided contact information.',
                         'Committee and portfolio allocations remain subject to availability and the discretion of the Secretariat and are not guaranteed to match the submitted preferences.',

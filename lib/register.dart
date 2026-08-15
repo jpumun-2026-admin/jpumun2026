@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:jpumun_website/services/razorpay_api.dart';
-import 'package:jpumun_website/services/razorpay_checkout.dart';
-import 'package:jpumun_website/services/razorpay_checkout_types.dart';
+import 'package:jpumun_website/app_config.dart';
+import 'package:jpumun_website/payment.dart';
+import 'package:jpumun_website/services/registration_api.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -15,14 +13,6 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-
-  static const String _registrationApiUrl =
-      'https://script.google.com/macros/s/AKfycby8iL2S4uzaoyvTi-NIVr-hNe4a8-SqcfcpE7J5vcK6n9pLW0Dtxik9K7vP22ar1XF4/exec';
-  static const int _paymentAmountPaise = 95000;
-  static const String _paymentCurrency = 'INR';
-  static const String _merchantName = 'JPUMUN 2026';
-  static const String _paymentDescription =
-      'JPUMUN 2026 individual delegate registration';
 
   bool _isSubmitting = false;
   // ============================================================
@@ -195,129 +185,46 @@ class _RegisterPageState extends State<RegisterPage> {
     await _showPaymentSummaryAndProceed(
       title: 'Individual Delegate Registration',
       delegateCount: 1,
-      totalAmountPaise: _paymentAmountPaise,
-      onConfirm: () => _completePaymentAndSubmit(data),
+      totalAmountPaise: kIndividualRegistrationFeePaise,
+      onConfirm: () => _completeRegistration(data),
     );
   }
 
-  Future<void> _completePaymentAndSubmit(Map<String, dynamic> data) async {
+  Future<void> _completeRegistration(Map<String, dynamic> data) async {
     setState(() => _isSubmitting = true);
 
     try {
-      final payment = await _runPaymentFlow(
-        receipt: 'individual_${DateTime.now().millisecondsSinceEpoch}',
-      );
-
-      final payload = <String, dynamic>{...data, 'payment': payment};
-
-      final response = await http.post(
-        Uri.parse(_registrationApiUrl),
-        headers: const {
-          // text/plain keeps this request "simple" in browsers and avoids
-          // an unnecessary CORS preflight. Apps Script still receives the
-          // body as JSON text and parses it normally.
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('Server returned HTTP ${response.statusCode}.');
-      }
-
-      final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) {
-        throw Exception('Unexpected response from registration server.');
-      }
-
-      if (decoded['success'] != true) {
-        throw Exception(
-          decoded['message']?.toString() ?? 'Registration failed.',
+      final decoded = await RegistrationApi.submitRegistration(data);
+      final registrationId = decoded['registration_id']?.toString();
+      if (registrationId == null || registrationId.isEmpty) {
+        throw const RegistrationApiException(
+          'Registration was created, but no registration ID was returned.',
         );
       }
 
-      final registrationId = decoded['registration_id']?.toString();
-
       if (!mounted) return;
 
-      await _showSuccessDialog(
-        title: 'Registration Successful',
-        message: registrationId == null
-            ? 'Your payment was confirmed and your registration has been submitted successfully.'
-            : 'Your payment was confirmed and your registration has been submitted successfully.\n\nRegistration ID: $registrationId',
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PaymentPage(
+            registrationId: registrationId,
+            registrationType: 'individual',
+            amountPaise: kIndividualRegistrationFeePaise,
+          ),
+        ),
       );
-    } on RazorpayApiException catch (error) {
+    } on RegistrationApiException catch (error) {
       if (!mounted) return;
       _showMessage(error.message);
     } catch (error) {
       if (!mounted) return;
       _showMessage(
-        'Could not complete registration after payment. '
-        'If the amount was charged, contact the Secretariat with your payment details.\n$error',
+        'Could not submit your registration right now. Please try again.\n$error',
       );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
-    }
-  }
-
-  Future<Map<String, dynamic>> _runPaymentFlow({
-    required String receipt,
-  }) async {
-    if (!isRazorpayCheckoutSupported) {
-      throw const RazorpayApiException(
-        'Razorpay checkout is only available on the Flutter web build.',
-      );
-    }
-
-    final checkoutReady = await waitForRazorpayCheckout();
-    if (!checkoutReady) {
-      throw const RazorpayApiException(
-        'Razorpay checkout could not be loaded. Please refresh the page and try again.',
-      );
-    }
-
-    final order = await RazorpayApi.createOrder(
-      amount: _paymentAmountPaise,
-      currency: _paymentCurrency,
-      receipt: receipt,
-    );
-
-    final checkoutResult = await openRazorpayCheckout(
-      RazorpayCheckoutOptions(
-        keyId: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: _merchantName,
-        description: _paymentDescription,
-        orderId: order.orderId,
-        contact: _contactController.text.trim(),
-        email: _emailController.text.trim(),
-      ),
-    );
-
-    switch (checkoutResult.status) {
-      case RazorpayCheckoutStatus.success:
-        await RazorpayApi.verifyPayment(
-          orderId: order.orderId,
-          paymentId: checkoutResult.paymentId!,
-          signature: checkoutResult.signature!,
-        );
-
-        return {
-          'amount': order.amount,
-          'currency': order.currency,
-          'razorpay_order_id': order.orderId,
-          'razorpay_payment_id': checkoutResult.paymentId,
-          'razorpay_signature': checkoutResult.signature,
-        };
-      case RazorpayCheckoutStatus.failed:
-        throw RazorpayApiException(
-          checkoutResult.errorMessage ?? 'Payment failed.',
-        );
-      case RazorpayCheckoutStatus.dismissed:
-        throw const RazorpayApiException('Payment cancelled.');
     }
   }
 
@@ -335,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
         return _PaymentSummarySheet(
           title: title,
           delegateCount: delegateCount,
-          perHeadAmountPaise: _paymentAmountPaise,
+          perHeadAmountPaise: kIndividualRegistrationFeePaise,
           subtotalAmountPaise: totalAmountPaise,
           onViewPolicies: () {
             Navigator.of(
@@ -367,73 +274,6 @@ class _RegisterPageState extends State<RegisterPage> {
         content: Text(message, style: GoogleFonts.ibmPlexSans(color: white)),
       ),
     );
-  }
-
-  Future<void> _showSuccessDialog({
-    required String title,
-    required String message,
-  }) async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: fieldBackground,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: const BorderSide(color: red, width: 1.4),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
-          contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          title: Text(
-            title,
-            style: GoogleFonts.prata(
-              color: gold,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          content: Text(
-            message,
-            style: GoogleFonts.ibmPlexSans(
-              color: white,
-              fontSize: 15,
-              height: 1.6,
-            ),
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: gold,
-                  foregroundColor: background,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                child: Text(
-                  'BACK TO HOME',
-                  style: GoogleFonts.prata(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
   }
 
   // ============================================================
@@ -708,7 +548,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           Center(
                             child: Text(
-                              'You will be taken to secure payment for INR 950',
+                              'You will be redirected to the payment proof step for INR 950',
                               style: GoogleFonts.ibmPlexSans(
                                 color: gold,
                                 fontSize: isMobile ? 10 : 13,
@@ -820,7 +660,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           TextSpan(
             text:
-                'Please fill in all required details carefully. Committee and portfolio allocations will be communicated via Email/WhatsApp after successful registration and payment verification.',
+                'Please fill in all required details carefully. Committee and portfolio allocations will be communicated via Email/WhatsApp after registration and payment verification.',
           ),
         ],
       ),
@@ -1396,7 +1236,7 @@ class _PaymentSummarySheet extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'PAY NOW',
+                      'CONTINUE',
                       style: GoogleFonts.prata(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,

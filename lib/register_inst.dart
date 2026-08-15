@@ -1,11 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:jpumun_website/services/razorpay_api.dart';
-import 'package:jpumun_website/services/razorpay_checkout.dart';
-import 'package:jpumun_website/services/razorpay_checkout_types.dart';
+import 'package:jpumun_website/app_config.dart';
+import 'package:jpumun_website/payment.dart';
+import 'package:jpumun_website/services/registration_api.dart';
 
 class RegisterInstitute extends StatefulWidget {
   const RegisterInstitute({super.key});
@@ -16,14 +14,6 @@ class RegisterInstitute extends StatefulWidget {
 
 class _RegisterInstituteState extends State<RegisterInstitute> {
   final _formKey = GlobalKey<FormState>();
-
-  static const String _registrationApiUrl =
-      'https://script.google.com/macros/s/AKfycbxmYf2WpadvGHLDOb7laUGS-GJ-1lPjhkNJWn96vY1gtYJrriPUu6H4PvK5UXZJ3HLI/exec';
-  static const int _paymentAmountPaise = 95000;
-  static const String _paymentCurrency = 'INR';
-  static const String _merchantName = 'JPUMUN 2026';
-  static const String _paymentDescription =
-      'JPUMUN 2026 institutional delegation registration';
 
   bool _isSubmitting = false;
   // ============================================================
@@ -276,137 +266,56 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     };
 
     final delegateCount = _delegates.length;
-    final subtotalAmountPaise = delegateCount * _paymentAmountPaise;
+    final subtotalAmountPaise =
+        delegateCount * kInstitutionalRegistrationFeePerDelegatePaise;
 
     await _showPaymentSummaryAndProceed(
       title: 'Institutional Delegation Registration',
       delegateCount: delegateCount,
       subtotalAmountPaise: subtotalAmountPaise,
-      onConfirm: () => _completePaymentAndSubmit(
-        data,
-        totalAmountPaise: subtotalAmountPaise,
-      ),
+      onConfirm: () =>
+          _completeRegistration(data, totalAmountPaise: subtotalAmountPaise),
     );
   }
 
-  Future<void> _completePaymentAndSubmit(
+  Future<void> _completeRegistration(
     Map<String, dynamic> data, {
     required int totalAmountPaise,
   }) async {
     setState(() => _isSubmitting = true);
 
     try {
-      final payment = await _runPaymentFlow(
-        receipt: 'institutional_${DateTime.now().millisecondsSinceEpoch}',
-        amountPaise: totalAmountPaise,
-      );
-
-      final payload = <String, dynamic>{...data, 'payment': payment};
-
-      final response = await http.post(
-        Uri.parse(_registrationApiUrl),
-        headers: const {'Content-Type': 'text/plain;charset=utf-8'},
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('Server returned HTTP ${response.statusCode}.');
-      }
-
-      final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) {
-        throw Exception('Unexpected response from registration server.');
-      }
-
-      if (decoded['success'] != true) {
-        throw Exception(
-          decoded['message']?.toString() ?? 'Registration failed.',
+      final decoded = await RegistrationApi.submitRegistration(data);
+      final registrationId = decoded['registration_id']?.toString();
+      if (registrationId == null || registrationId.isEmpty) {
+        throw const RegistrationApiException(
+          'Registration was created, but no registration ID was returned.',
         );
       }
 
-      final registrationId = decoded['registration_id']?.toString();
-      final delegatesSaved = decoded['delegates_saved'];
-
       if (!mounted) return;
 
-      await _showSuccessDialog(
-        title: 'Registration Successful',
-        message: registrationId == null
-            ? 'Your payment was confirmed and the institutional registration has been submitted successfully.'
-            : 'Your payment was confirmed and the institutional registration has been submitted successfully.\n\nRegistration ID: $registrationId${delegatesSaved == null ? '' : '\nDelegates saved: $delegatesSaved'}',
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PaymentPage(
+            registrationId: registrationId,
+            registrationType: 'institutional',
+            amountPaise: totalAmountPaise,
+          ),
+        ),
       );
-    } on RazorpayApiException catch (error) {
+    } on RegistrationApiException catch (error) {
       if (!mounted) return;
       _showMessage(error.message);
     } catch (error) {
       if (!mounted) return;
       _showMessage(
-        'Could not complete registration after payment. '
-        'If the amount was charged, contact the Secretariat with your payment details.\n$error',
+        'Could not submit your institutional registration right now. Please try again.\n$error',
       );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
-    }
-  }
-
-  Future<Map<String, dynamic>> _runPaymentFlow({
-    required String receipt,
-    required int amountPaise,
-  }) async {
-    if (!isRazorpayCheckoutSupported) {
-      throw const RazorpayApiException(
-        'Razorpay checkout is only available on the Flutter web build.',
-      );
-    }
-
-    final checkoutReady = await waitForRazorpayCheckout();
-    if (!checkoutReady) {
-      throw const RazorpayApiException(
-        'Razorpay checkout could not be loaded. Please refresh the page and try again.',
-      );
-    }
-
-    final order = await RazorpayApi.createOrder(
-      amount: amountPaise,
-      currency: _paymentCurrency,
-      receipt: receipt,
-    );
-
-    final checkoutResult = await openRazorpayCheckout(
-      RazorpayCheckoutOptions(
-        keyId: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: _merchantName,
-        description: _paymentDescription,
-        orderId: order.orderId,
-        contact: _headDelegateContactController.text.trim(),
-      ),
-    );
-
-    switch (checkoutResult.status) {
-      case RazorpayCheckoutStatus.success:
-        await RazorpayApi.verifyPayment(
-          orderId: order.orderId,
-          paymentId: checkoutResult.paymentId!,
-          signature: checkoutResult.signature!,
-        );
-
-        return {
-          'amount': order.amount,
-          'currency': order.currency,
-          'razorpay_order_id': order.orderId,
-          'razorpay_payment_id': checkoutResult.paymentId,
-          'razorpay_signature': checkoutResult.signature,
-        };
-      case RazorpayCheckoutStatus.failed:
-        throw RazorpayApiException(
-          checkoutResult.errorMessage ?? 'Payment failed.',
-        );
-      case RazorpayCheckoutStatus.dismissed:
-        throw const RazorpayApiException('Payment cancelled.');
     }
   }
 
@@ -424,7 +333,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         return _PaymentSummarySheet(
           title: title,
           delegateCount: delegateCount,
-          perHeadAmountPaise: _paymentAmountPaise,
+          perHeadAmountPaise: kInstitutionalRegistrationFeePerDelegatePaise,
           subtotalAmountPaise: subtotalAmountPaise,
           onViewPolicies: () {
             Navigator.of(
@@ -456,73 +365,6 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         content: Text(message, style: GoogleFonts.ibmPlexSans(color: white)),
       ),
     );
-  }
-
-  Future<void> _showSuccessDialog({
-    required String title,
-    required String message,
-  }) async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: fieldBackground,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: const BorderSide(color: red, width: 1.4),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
-          contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          title: Text(
-            title,
-            style: GoogleFonts.prata(
-              color: gold,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          content: Text(
-            message,
-            style: GoogleFonts.ibmPlexSans(
-              color: white,
-              fontSize: 15,
-              height: 1.6,
-            ),
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: gold,
-                  foregroundColor: background,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                child: Text(
-                  'BACK TO HOME',
-                  style: GoogleFonts.prata(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
   }
 
   // ============================================================
@@ -669,7 +511,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
                           Center(
                             child: Text(
-                              'You will be taken to secure payment for INR 950',
+                              'You will be redirected to the payment proof step after registration',
                               style: GoogleFonts.ibmPlexSans(
                                 color: gold,
                                 fontSize: isMobile ? 10 : 13,
@@ -1922,7 +1764,7 @@ class _PaymentSummarySheet extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'PAY NOW',
+                      'CONTINUE',
                       style: GoogleFonts.prata(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
