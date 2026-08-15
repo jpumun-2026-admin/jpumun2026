@@ -34,6 +34,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _contactController = TextEditingController();
   final _institutionController = TextEditingController();
   final _munExperienceController = TextEditingController();
+  final _portfolioPreference1Controller = TextEditingController();
+  final _portfolioPreference2Controller = TextEditingController();
 
   String? _selectedClass;
   String? _committeePreference1;
@@ -84,6 +86,8 @@ class _RegisterPageState extends State<RegisterPage> {
     _contactController.dispose();
     _institutionController.dispose();
     _munExperienceController.dispose();
+    _portfolioPreference1Controller.dispose();
+    _portfolioPreference2Controller.dispose();
 
     super.dispose();
   }
@@ -181,6 +185,8 @@ class _RegisterPageState extends State<RegisterPage> {
       'mun_experience': _munExperienceController.text.trim(),
       'committee_preference_1': _committeePreference1,
       'committee_preference_2': _committeePreference2,
+      'portfolio_preference_1': _portfolioPreference1Controller.text.trim(),
+      'portfolio_preference_2': _portfolioPreference2Controller.text.trim(),
       'declaration_information_accurate': _declaration1,
       'declaration_code_of_conduct': _declaration2,
       'declaration_allocation_policy': _declaration3,
@@ -331,6 +337,12 @@ class _RegisterPageState extends State<RegisterPage> {
           delegateCount: delegateCount,
           perHeadAmountPaise: _paymentAmountPaise,
           subtotalAmountPaise: totalAmountPaise,
+          onViewPolicies: () {
+            Navigator.of(
+              sheetContext,
+              rootNavigator: true,
+            ).pushNamed('/policies');
+          },
           onPayNow: () {
             Navigator.of(sheetContext).pop(true);
           },
@@ -646,6 +658,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               });
                             },
                             isMobile: isMobile,
+                          ),
+
+                          SizedBox(height: isMobile ? 38 : 50),
+
+                          _FormFieldBlock(
+                            label: 'Portfolio Preference 01',
+                            child: _buildTextField(
+                              controller: _portfolioPreference1Controller,
+                              hint:
+                                  'Enter portfolio preference for committee 1',
+                              validator: _required,
+                            ),
+                          ),
+
+                          SizedBox(height: isMobile ? 34 : 42),
+
+                          _FormFieldBlock(
+                            label: 'Portfolio Preference 02',
+                            child: _buildTextField(
+                              controller: _portfolioPreference2Controller,
+                              hint:
+                                  'Enter portfolio preference for committee 2',
+                              validator: _required,
+                            ),
                           ),
 
                           SizedBox(height: isMobile ? 55 : 75),
@@ -1246,6 +1282,7 @@ class _PaymentSummarySheet extends StatelessWidget {
     required this.delegateCount,
     required this.perHeadAmountPaise,
     required this.subtotalAmountPaise,
+    required this.onViewPolicies,
     required this.onPayNow,
   });
 
@@ -1253,6 +1290,7 @@ class _PaymentSummarySheet extends StatelessWidget {
   final int delegateCount;
   final int perHeadAmountPaise;
   final int subtotalAmountPaise;
+  final VoidCallback onViewPolicies;
   final VoidCallback onPayNow;
 
   @override
@@ -1326,6 +1364,22 @@ class _PaymentSummarySheet extends StatelessWidget {
                   label: 'Subtotal',
                   value: _formatAmount(subtotalAmountPaise),
                   emphasize: true,
+                ),
+                const SizedBox(height: 18),
+                Center(
+                  child: TextButton(
+                    onPressed: onViewPolicies,
+                    child: Text(
+                      'Terms and Conditions',
+                      style: GoogleFonts.ibmPlexSans(
+                        color: const Color(0xFFC9A86A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                        decorationColor: const Color(0xFFC9A86A),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(

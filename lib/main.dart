@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jpumun_website/policies.dart';
 import 'package:jpumun_website/register_inst.dart';
 import 'home.dart';
 import 'register.dart';
@@ -21,6 +22,7 @@ class MainApp extends StatelessWidget {
       initialRoute: '/home',
       routes: {
         '/home': (context) => HomePage(),
+        '/policies': (context) => const PoliciesPage(),
         '/register': (context) => RegisterPage(),
         '/register-institute': (context) => RegisterInstitute(),
       },

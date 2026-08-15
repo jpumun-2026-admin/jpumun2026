@@ -18,7 +18,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
   final _formKey = GlobalKey<FormState>();
 
   static const String _registrationApiUrl =
-      'https://script.google.com/macros/s/AKfycby8iL2S4uzaoyvTi-NIVr-hNe4a8-SqcfcpE7J5vcK6n9pLW0Dtxik9K7vP22ar1XF4/exec';
+      'https://script.google.com/macros/s/AKfycbxmYf2WpadvGHLDOb7laUGS-GJ-1lPjhkNJWn96vY1gtYJrriPUu6H4PvK5UXZJ3HLI/exec';
   static const int _paymentAmountPaise = 95000;
   static const String _paymentCurrency = 'INR';
   static const String _merchantName = 'JPUMUN 2026';
@@ -426,6 +426,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           delegateCount: delegateCount,
           perHeadAmountPaise: _paymentAmountPaise,
           subtotalAmountPaise: subtotalAmountPaise,
+          onViewPolicies: () {
+            Navigator.of(
+              sheetContext,
+              rootNavigator: true,
+            ).pushNamed('/policies');
+          },
           onPayNow: () {
             Navigator.of(sheetContext).pop(true);
           },
@@ -1171,56 +1177,25 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
           const SizedBox(height: 38),
 
-          // Portfolio preferences
-          if (isMobile) ...[
-            _FormFieldBlock(
-              label: 'Portfolio / Country Preference 01',
-              child: _buildTextField(
-                controller: delegate.portfolioPreference1Controller,
-                hint: 'Enter preferred portfolio / country',
-                validator: _required,
-              ),
+          _FormFieldBlock(
+            label: 'Portfolio Preference 01',
+            child: _buildTextField(
+              controller: delegate.portfolioPreference1Controller,
+              hint: 'Enter portfolio preference for committee 1',
+              validator: _required,
             ),
+          ),
 
-            const SizedBox(height: 32),
+          const SizedBox(height: 32),
 
-            _FormFieldBlock(
-              label: 'Portfolio / Country Preference 02',
-              child: _buildTextField(
-                controller: delegate.portfolioPreference2Controller,
-                hint: 'Enter preferred portfolio / country',
-                validator: _required,
-              ),
+          _FormFieldBlock(
+            label: 'Portfolio Preference 02',
+            child: _buildTextField(
+              controller: delegate.portfolioPreference2Controller,
+              hint: 'Enter portfolio preference for committee 2',
+              validator: _required,
             ),
-          ] else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _FormFieldBlock(
-                    label: 'Portfolio / Country Preference 01',
-                    child: _buildTextField(
-                      controller: delegate.portfolioPreference1Controller,
-                      hint: 'Enter preferred portfolio / country',
-                      validator: _required,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 28),
-
-                Expanded(
-                  child: _FormFieldBlock(
-                    label: 'Portfolio / Country Preference 02',
-                    child: _buildTextField(
-                      controller: delegate.portfolioPreference2Controller,
-                      hint: 'Enter preferred portfolio / country',
-                      validator: _required,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          ),
         ],
       ),
     );
@@ -1495,9 +1470,7 @@ class _DelegateFormData {
   final emailController = TextEditingController();
   final contactController = TextEditingController();
   final munExperienceController = TextEditingController();
-
   final portfolioPreference1Controller = TextEditingController();
-
   final portfolioPreference2Controller = TextEditingController();
 
   String? selectedClass;
@@ -1835,6 +1808,7 @@ class _PaymentSummarySheet extends StatelessWidget {
     required this.delegateCount,
     required this.perHeadAmountPaise,
     required this.subtotalAmountPaise,
+    required this.onViewPolicies,
     required this.onPayNow,
   });
 
@@ -1842,6 +1816,7 @@ class _PaymentSummarySheet extends StatelessWidget {
   final int delegateCount;
   final int perHeadAmountPaise;
   final int subtotalAmountPaise;
+  final VoidCallback onViewPolicies;
   final VoidCallback onPayNow;
 
   @override
@@ -1915,6 +1890,22 @@ class _PaymentSummarySheet extends StatelessWidget {
                   label: 'Subtotal',
                   value: _formatAmount(subtotalAmountPaise),
                   emphasize: true,
+                ),
+                const SizedBox(height: 18),
+                Center(
+                  child: TextButton(
+                    onPressed: onViewPolicies,
+                    child: Text(
+                      'Terms and Conditions',
+                      style: GoogleFonts.ibmPlexSans(
+                        color: const Color(0xFFC9A86A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                        decorationColor: const Color(0xFFC9A86A),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
