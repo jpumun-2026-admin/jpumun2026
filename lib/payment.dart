@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jpumun_website/app_config.dart';
+import 'package:jpumun_website/services/payment_screenshot_picker.dart';
 import 'package:jpumun_website/services/registration_api.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -47,20 +47,14 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Future<void> _pickScreenshot() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowMultiple: false,
-      withData: true,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
-    );
+    final result = await pickPaymentScreenshot();
 
-    if (result == null || result.files.isEmpty) {
+    if (result == null) {
       return;
     }
 
-    final file = result.files.single;
-    final bytes = file.bytes;
-    if (bytes == null || bytes.isEmpty) {
+    final bytes = Uint8List.fromList(result.bytes);
+    if (bytes.isEmpty) {
       _showMessage('Could not read the selected screenshot.');
       return;
     }
@@ -70,7 +64,9 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    final mimeType = _mimeTypeFromName(file.name);
+    final mimeType = result.mimeType.isNotEmpty
+        ? result.mimeType
+        : _mimeTypeFromName(result.fileName);
     if (mimeType == null) {
       _showMessage('Only JPG, JPEG, PNG, and WebP files are allowed.');
       return;
@@ -78,9 +74,9 @@ class _PaymentPageState extends State<PaymentPage> {
 
     setState(() {
       _selectedBytes = bytes;
-      _selectedFileName = file.name;
+      _selectedFileName = result.fileName;
       _selectedMimeType = mimeType;
-      _selectedFileSize = bytes.length;
+      _selectedFileSize = result.sizeInBytes;
     });
   }
 
