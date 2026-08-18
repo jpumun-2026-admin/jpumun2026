@@ -13,6 +13,16 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameKey = GlobalKey();
+  final _emailKey = GlobalKey();
+  final _contactKey = GlobalKey();
+  final _institutionKey = GlobalKey();
+  final _classKey = GlobalKey();
+  final _portfolioPreference1Key = GlobalKey();
+  final _portfolioPreference2Key = GlobalKey();
+  final _committeePreference1Key = GlobalKey();
+  final _committeePreference2Key = GlobalKey();
+  final _declarationKey = GlobalKey();
 
   bool _isSubmitting = false;
   // ============================================================
@@ -122,6 +132,45 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
+  bool _isBlank(String? value) => value == null || value.trim().isEmpty;
+
+  Future<void> _scrollToSection(GlobalKey key) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = key.currentContext;
+      if (context == null) return;
+
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.12,
+      );
+    });
+  }
+
+  GlobalKey? _firstInvalidFieldKey() {
+    if (_isBlank(_nameController.text)) return _nameKey;
+    if (_emailValidator(_emailController.text) != null) return _emailKey;
+    if (_phoneValidator(_contactController.text) != null) return _contactKey;
+    if (_isBlank(_institutionController.text)) return _institutionKey;
+    if (_selectedClass == null) return _classKey;
+    if (_committeePreference1 == null) return _committeePreference1Key;
+    if (_committeePreference2 == null ||
+        _committeePreference1 == _committeePreference2) {
+      return _committeePreference2Key;
+    }
+    if (_isBlank(_portfolioPreference1Controller.text)) {
+      return _portfolioPreference1Key;
+    }
+    if (_isBlank(_portfolioPreference2Controller.text)) {
+      return _portfolioPreference2Key;
+    }
+    if (!_declaration1 || !_declaration2 || !_declaration3) {
+      return _declarationKey;
+    }
+    return null;
+  }
+
   // ============================================================
   // DECLARATION VALIDATION HELPER
   // ============================================================
@@ -145,21 +194,34 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (_committeePreference1 == null || _committeePreference2 == null) {
       _showMessage('Please select both committee preferences.');
+      await _scrollToSection(
+        _committeePreference1 == null
+            ? _committeePreference1Key
+            : _committeePreference2Key,
+      );
       return;
     }
 
     if (_committeePreference1 == _committeePreference2) {
       _showMessage('Committee Preference 1 and 2 must be different.');
+      await _scrollToSection(_committeePreference2Key);
       return;
     }
 
     if (!_declaration1 || !_declaration2 || !_declaration3) {
       setState(() => _showDeclarationError = true);
       _showMessage('Please accept all declarations before proceeding.');
+      await _scrollToSection(_declarationKey);
       return;
     }
 
-    if (!valid) return;
+    if (!valid) {
+      final firstInvalidKey = _firstInvalidFieldKey();
+      if (firstInvalidKey != null) {
+        await _scrollToSection(firstInvalidKey);
+      }
+      return;
+    }
 
     if (_showDeclarationError) {
       setState(() => _showDeclarationError = false);
@@ -336,12 +398,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           // ====================================
                           // FULL NAME
                           // ====================================
-                          _FormFieldBlock(
-                            label: 'Delegate Full Name',
-                            child: _buildTextField(
-                              controller: _nameController,
-                              hint: 'John Doe',
-                              validator: _required,
+                          KeyedSubtree(
+                            key: _nameKey,
+                            child: _FormFieldBlock(
+                              label: 'Delegate Full Name',
+                              child: _buildTextField(
+                                controller: _nameController,
+                                hint: 'John Doe',
+                                validator: _required,
+                              ),
                             ),
                           ),
 
@@ -351,25 +416,31 @@ class _RegisterPageState extends State<RegisterPage> {
                           // EMAIL + CONTACT
                           // ====================================
                           if (isMobile) ...[
-                            _FormFieldBlock(
-                              label: 'Email Address',
-                              child: _buildTextField(
-                                controller: _emailController,
-                                hint: 'example@email.com',
-                                keyboardType: TextInputType.emailAddress,
-                                validator: _emailValidator,
+                            KeyedSubtree(
+                              key: _emailKey,
+                              child: _FormFieldBlock(
+                                label: 'Email Address',
+                                child: _buildTextField(
+                                  controller: _emailController,
+                                  hint: 'example@email.com',
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: _emailValidator,
+                                ),
                               ),
                             ),
 
                             const SizedBox(height: 38),
 
-                            _FormFieldBlock(
-                              label: 'Contact Number',
-                              child: _buildTextField(
-                                controller: _contactController,
-                                hint: '+91 XXXXX XXXXX',
-                                keyboardType: TextInputType.phone,
-                                validator: _phoneValidator,
+                            KeyedSubtree(
+                              key: _contactKey,
+                              child: _FormFieldBlock(
+                                label: 'Contact Number',
+                                child: _buildTextField(
+                                  controller: _contactController,
+                                  hint: '+91 XXXXX XXXXX',
+                                  keyboardType: TextInputType.phone,
+                                  validator: _phoneValidator,
+                                ),
                               ),
                             ),
                           ] else
@@ -377,13 +448,17 @@ class _RegisterPageState extends State<RegisterPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: _FormFieldBlock(
-                                    label: 'Email Address',
-                                    child: _buildTextField(
-                                      controller: _emailController,
-                                      hint: 'example@email.com',
-                                      keyboardType: TextInputType.emailAddress,
-                                      validator: _emailValidator,
+                                  child: KeyedSubtree(
+                                    key: _emailKey,
+                                    child: _FormFieldBlock(
+                                      label: 'Email Address',
+                                      child: _buildTextField(
+                                        controller: _emailController,
+                                        hint: 'example@email.com',
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        validator: _emailValidator,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -391,13 +466,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 const SizedBox(width: 28),
 
                                 Expanded(
-                                  child: _FormFieldBlock(
-                                    label: 'Contact Number',
-                                    child: _buildTextField(
-                                      controller: _contactController,
-                                      hint: '+91 XXXXX XXXXX',
-                                      keyboardType: TextInputType.phone,
-                                      validator: _phoneValidator,
+                                  child: KeyedSubtree(
+                                    key: _contactKey,
+                                    child: _FormFieldBlock(
+                                      label: 'Contact Number',
+                                      child: _buildTextField(
+                                        controller: _contactController,
+                                        hint: '+91 XXXXX XXXXX',
+                                        keyboardType: TextInputType.phone,
+                                        validator: _phoneValidator,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -410,20 +488,26 @@ class _RegisterPageState extends State<RegisterPage> {
                           // INSTITUTION + CLASS
                           // ====================================
                           if (isMobile) ...[
-                            _FormFieldBlock(
-                              label: 'Institution Name',
-                              child: _buildTextField(
-                                controller: _institutionController,
-                                hint: 'Enter institution name',
-                                validator: _required,
+                            KeyedSubtree(
+                              key: _institutionKey,
+                              child: _FormFieldBlock(
+                                label: 'Institution Name',
+                                child: _buildTextField(
+                                  controller: _institutionController,
+                                  hint: 'Enter institution name',
+                                  validator: _required,
+                                ),
                               ),
                             ),
 
                             const SizedBox(height: 38),
 
-                            _FormFieldBlock(
-                              label: 'Class',
-                              child: _buildClassDropdown(),
+                            KeyedSubtree(
+                              key: _classKey,
+                              child: _FormFieldBlock(
+                                label: 'Class',
+                                child: _buildClassDropdown(),
+                              ),
                             ),
                           ] else
                             Row(
@@ -431,12 +515,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               children: [
                                 Expanded(
                                   flex: 3,
-                                  child: _FormFieldBlock(
-                                    label: 'Institution Name',
-                                    child: _buildTextField(
-                                      controller: _institutionController,
-                                      hint: 'Enter institution name',
-                                      validator: _required,
+                                  child: KeyedSubtree(
+                                    key: _institutionKey,
+                                    child: _FormFieldBlock(
+                                      label: 'Institution Name',
+                                      child: _buildTextField(
+                                        controller: _institutionController,
+                                        hint: 'Enter institution name',
+                                        validator: _required,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -445,9 +532,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                 Expanded(
                                   flex: 2,
-                                  child: _FormFieldBlock(
-                                    label: 'Class',
-                                    child: _buildClassDropdown(),
+                                  child: KeyedSubtree(
+                                    key: _classKey,
+                                    child: _FormFieldBlock(
+                                      label: 'Class',
+                                      child: _buildClassDropdown(),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -473,15 +563,18 @@ class _RegisterPageState extends State<RegisterPage> {
                           // ====================================
                           // COMMITTEE PREFERENCE 1
                           // ====================================
-                          _buildCommitteeSection(
-                            title: 'Committee Preference 01',
-                            value: _committeePreference1,
-                            onChanged: (value) {
-                              setState(() {
-                                _committeePreference1 = value;
-                              });
-                            },
-                            isMobile: isMobile,
+                          KeyedSubtree(
+                            key: _committeePreference1Key,
+                            child: _buildCommitteeSection(
+                              title: 'Committee Preference 01',
+                              value: _committeePreference1,
+                              onChanged: (value) {
+                                setState(() {
+                                  _committeePreference1 = value;
+                                });
+                              },
+                              isMobile: isMobile,
+                            ),
                           ),
 
                           SizedBox(height: isMobile ? 50 : 70),
@@ -489,38 +582,47 @@ class _RegisterPageState extends State<RegisterPage> {
                           // ====================================
                           // COMMITTEE PREFERENCE 2
                           // ====================================
-                          _buildCommitteeSection(
-                            title: 'Committee Preference 02',
-                            value: _committeePreference2,
-                            onChanged: (value) {
-                              setState(() {
-                                _committeePreference2 = value;
-                              });
-                            },
-                            isMobile: isMobile,
+                          KeyedSubtree(
+                            key: _committeePreference2Key,
+                            child: _buildCommitteeSection(
+                              title: 'Committee Preference 02',
+                              value: _committeePreference2,
+                              onChanged: (value) {
+                                setState(() {
+                                  _committeePreference2 = value;
+                                });
+                              },
+                              isMobile: isMobile,
+                            ),
                           ),
 
                           SizedBox(height: isMobile ? 38 : 50),
 
-                          _FormFieldBlock(
-                            label: 'Portfolio Preference 01',
-                            child: _buildTextField(
-                              controller: _portfolioPreference1Controller,
-                              hint:
-                                  'Enter portfolio preference for committee 1',
-                              validator: _required,
+                          KeyedSubtree(
+                            key: _portfolioPreference1Key,
+                            child: _FormFieldBlock(
+                              label: 'Portfolio Preference 01',
+                              child: _buildTextField(
+                                controller: _portfolioPreference1Controller,
+                                hint:
+                                    'Enter portfolio preference for committee 1',
+                                validator: _required,
+                              ),
                             ),
                           ),
 
                           SizedBox(height: isMobile ? 34 : 42),
 
-                          _FormFieldBlock(
-                            label: 'Portfolio Preference 02',
-                            child: _buildTextField(
-                              controller: _portfolioPreference2Controller,
-                              hint:
-                                  'Enter portfolio preference for committee 2',
-                              validator: _required,
+                          KeyedSubtree(
+                            key: _portfolioPreference2Key,
+                            child: _FormFieldBlock(
+                              label: 'Portfolio Preference 02',
+                              child: _buildTextField(
+                                controller: _portfolioPreference2Controller,
+                                hint:
+                                    'Enter portfolio preference for committee 2',
+                                validator: _required,
+                              ),
                             ),
                           ),
 
@@ -529,7 +631,10 @@ class _RegisterPageState extends State<RegisterPage> {
                           // ====================================
                           // DECLARATION
                           // ====================================
-                          _buildDeclaration(isMobile: isMobile),
+                          KeyedSubtree(
+                            key: _declarationKey,
+                            child: _buildDeclaration(isMobile: isMobile),
+                          ),
 
                           SizedBox(height: isMobile ? 55 : 80),
 

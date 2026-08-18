@@ -14,6 +14,13 @@ class RegisterInstitute extends StatefulWidget {
 
 class _RegisterInstituteState extends State<RegisterInstitute> {
   final _formKey = GlobalKey<FormState>();
+  final _institutionKey = GlobalKey();
+  final _facultyAdvisorNameKey = GlobalKey();
+  final _facultyAdvisorContactKey = GlobalKey();
+  final _headDelegateNameKey = GlobalKey();
+  final _headDelegateContactKey = GlobalKey();
+  final _delegationSizeKey = GlobalKey();
+  final _declarationKey = GlobalKey();
 
   bool _isSubmitting = false;
   // ============================================================
@@ -146,6 +153,71 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     return null;
   }
 
+  bool _isBlank(String? value) => value == null || value.trim().isEmpty;
+
+  Future<void> _scrollToSection(GlobalKey key) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = key.currentContext;
+      if (context == null) return;
+
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.12,
+      );
+    });
+  }
+
+  GlobalKey? _firstInvalidFieldKey() {
+    if (_isBlank(_institutionController.text)) return _institutionKey;
+    if (_isBlank(_facultyAdvisorNameController.text)) {
+      return _facultyAdvisorNameKey;
+    }
+    if (_phoneValidator(_facultyAdvisorContactController.text) != null) {
+      return _facultyAdvisorContactKey;
+    }
+    if (_isBlank(_headDelegateNameController.text)) {
+      return _headDelegateNameKey;
+    }
+    if (_phoneValidator(_headDelegateContactController.text) != null) {
+      return _headDelegateContactKey;
+    }
+    if (_delegationSizeValidator(_delegationSizeController.text) != null) {
+      return _delegationSizeKey;
+    }
+
+    for (final delegate in _delegates) {
+      if (_isBlank(delegate.nameController.text)) return delegate.nameKey;
+      if (_emailValidator(delegate.emailController.text) != null) {
+        return delegate.emailKey;
+      }
+      if (_phoneValidator(delegate.contactController.text) != null) {
+        return delegate.contactKey;
+      }
+      if (delegate.selectedClass == null) return delegate.classKey;
+      if (delegate.committeePreference1 == null) {
+        return delegate.committeePreference1Key;
+      }
+      if (delegate.committeePreference2 == null ||
+          delegate.committeePreference1 == delegate.committeePreference2) {
+        return delegate.committeePreference2Key;
+      }
+      if (_isBlank(delegate.portfolioPreference1Controller.text)) {
+        return delegate.portfolioPreference1Key;
+      }
+      if (_isBlank(delegate.portfolioPreference2Controller.text)) {
+        return delegate.portfolioPreference2Key;
+      }
+    }
+
+    if (!_declaration1 || !_declaration2 || !_declaration3) {
+      return _declarationKey;
+    }
+
+    return null;
+  }
+
   // ============================================================
   // DELEGATE MANAGEMENT
   // ============================================================
@@ -194,6 +266,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
       if (delegate.selectedClass == null) {
         _showMessage('Please select the class for Delegate ${i + 1}.');
+        await _scrollToSection(delegate.classKey);
         return;
       }
 
@@ -202,6 +275,11 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         _showMessage(
           'Please select both committee preferences for Delegate ${i + 1}.',
         );
+        await _scrollToSection(
+          delegate.committeePreference1 == null
+              ? delegate.committeePreference1Key
+              : delegate.committeePreference2Key,
+        );
         return;
       }
 
@@ -209,6 +287,7 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         _showMessage(
           'Delegate ${i + 1} must select two different committee preferences.',
         );
+        await _scrollToSection(delegate.committeePreference2Key);
         return;
       }
     }
@@ -216,10 +295,17 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
     if (!_declaration1 || !_declaration2 || !_declaration3) {
       setState(() => _showDeclarationError = true);
       _showMessage('Please accept all declarations before proceeding.');
+      await _scrollToSection(_declarationKey);
       return;
     }
 
-    if (!valid) return;
+    if (!valid) {
+      final firstInvalidKey = _firstInvalidFieldKey();
+      if (firstInvalidKey != null) {
+        await _scrollToSection(firstInvalidKey);
+      }
+      return;
+    }
 
     if (_showDeclarationError) {
       setState(() => _showDeclarationError = false);
@@ -492,7 +578,10 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                           // ====================================
                           // DECLARATION
                           // ====================================
-                          _buildDeclaration(isMobile: isMobile),
+                          KeyedSubtree(
+                            key: _declarationKey,
+                            child: _buildDeclaration(isMobile: isMobile),
+                          ),
 
                           SizedBox(height: isMobile ? 55 : 80),
 
@@ -691,12 +780,15 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Institution
-        _FormFieldBlock(
-          label: 'Institution Name',
-          child: _buildTextField(
-            controller: _institutionController,
-            hint: 'Enter institution name',
-            validator: _required,
+        KeyedSubtree(
+          key: _institutionKey,
+          child: _FormFieldBlock(
+            label: 'Institution Name',
+            child: _buildTextField(
+              controller: _institutionController,
+              hint: 'Enter institution name',
+              validator: _required,
+            ),
           ),
         ),
 
@@ -708,24 +800,30 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         const SizedBox(height: 22),
 
         if (isMobile) ...[
-          _FormFieldBlock(
-            label: 'Faculty Advisor Name',
-            child: _buildTextField(
-              controller: _facultyAdvisorNameController,
-              hint: 'Enter faculty advisor name',
-              validator: _required,
+          KeyedSubtree(
+            key: _facultyAdvisorNameKey,
+            child: _FormFieldBlock(
+              label: 'Faculty Advisor Name',
+              child: _buildTextField(
+                controller: _facultyAdvisorNameController,
+                hint: 'Enter faculty advisor name',
+                validator: _required,
+              ),
             ),
           ),
 
           const SizedBox(height: 38),
 
-          _FormFieldBlock(
-            label: 'Contact Number',
-            child: _buildTextField(
-              controller: _facultyAdvisorContactController,
-              hint: '+91 XXXXX XXXXX',
-              keyboardType: TextInputType.phone,
-              validator: _phoneValidator,
+          KeyedSubtree(
+            key: _facultyAdvisorContactKey,
+            child: _FormFieldBlock(
+              label: 'Contact Number',
+              child: _buildTextField(
+                controller: _facultyAdvisorContactController,
+                hint: '+91 XXXXX XXXXX',
+                keyboardType: TextInputType.phone,
+                validator: _phoneValidator,
+              ),
             ),
           ),
         ] else
@@ -733,12 +831,15 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _FormFieldBlock(
-                  label: 'Faculty Advisor Name',
-                  child: _buildTextField(
-                    controller: _facultyAdvisorNameController,
-                    hint: 'Enter faculty advisor name',
-                    validator: _required,
+                child: KeyedSubtree(
+                  key: _facultyAdvisorNameKey,
+                  child: _FormFieldBlock(
+                    label: 'Faculty Advisor Name',
+                    child: _buildTextField(
+                      controller: _facultyAdvisorNameController,
+                      hint: 'Enter faculty advisor name',
+                      validator: _required,
+                    ),
                   ),
                 ),
               ),
@@ -746,13 +847,16 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               const SizedBox(width: 28),
 
               Expanded(
-                child: _FormFieldBlock(
-                  label: 'Contact Number',
-                  child: _buildTextField(
-                    controller: _facultyAdvisorContactController,
-                    hint: '+91 XXXXX XXXXX',
-                    keyboardType: TextInputType.phone,
-                    validator: _phoneValidator,
+                child: KeyedSubtree(
+                  key: _facultyAdvisorContactKey,
+                  child: _FormFieldBlock(
+                    label: 'Contact Number',
+                    child: _buildTextField(
+                      controller: _facultyAdvisorContactController,
+                      hint: '+91 XXXXX XXXXX',
+                      keyboardType: TextInputType.phone,
+                      validator: _phoneValidator,
+                    ),
                   ),
                 ),
               ),
@@ -767,24 +871,30 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         const SizedBox(height: 22),
 
         if (isMobile) ...[
-          _FormFieldBlock(
-            label: 'Head Delegate Name',
-            child: _buildTextField(
-              controller: _headDelegateNameController,
-              hint: 'Enter head delegate name',
-              validator: _required,
+          KeyedSubtree(
+            key: _headDelegateNameKey,
+            child: _FormFieldBlock(
+              label: 'Head Delegate Name',
+              child: _buildTextField(
+                controller: _headDelegateNameController,
+                hint: 'Enter head delegate name',
+                validator: _required,
+              ),
             ),
           ),
 
           const SizedBox(height: 38),
 
-          _FormFieldBlock(
-            label: 'Contact Number',
-            child: _buildTextField(
-              controller: _headDelegateContactController,
-              hint: '+91 XXXXX XXXXX',
-              keyboardType: TextInputType.phone,
-              validator: _phoneValidator,
+          KeyedSubtree(
+            key: _headDelegateContactKey,
+            child: _FormFieldBlock(
+              label: 'Contact Number',
+              child: _buildTextField(
+                controller: _headDelegateContactController,
+                hint: '+91 XXXXX XXXXX',
+                keyboardType: TextInputType.phone,
+                validator: _phoneValidator,
+              ),
             ),
           ),
         ] else
@@ -792,12 +902,15 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _FormFieldBlock(
-                  label: 'Head Delegate Name',
-                  child: _buildTextField(
-                    controller: _headDelegateNameController,
-                    hint: 'Enter head delegate name',
-                    validator: _required,
+                child: KeyedSubtree(
+                  key: _headDelegateNameKey,
+                  child: _FormFieldBlock(
+                    label: 'Head Delegate Name',
+                    child: _buildTextField(
+                      controller: _headDelegateNameController,
+                      hint: 'Enter head delegate name',
+                      validator: _required,
+                    ),
                   ),
                 ),
               ),
@@ -805,13 +918,16 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               const SizedBox(width: 28),
 
               Expanded(
-                child: _FormFieldBlock(
-                  label: 'Contact Number',
-                  child: _buildTextField(
-                    controller: _headDelegateContactController,
-                    hint: '+91 XXXXX XXXXX',
-                    keyboardType: TextInputType.phone,
-                    validator: _phoneValidator,
+                child: KeyedSubtree(
+                  key: _headDelegateContactKey,
+                  child: _FormFieldBlock(
+                    label: 'Contact Number',
+                    child: _buildTextField(
+                      controller: _headDelegateContactController,
+                      hint: '+91 XXXXX XXXXX',
+                      keyboardType: TextInputType.phone,
+                      validator: _phoneValidator,
+                    ),
                   ),
                 ),
               ),
@@ -821,14 +937,17 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
         const SizedBox(height: 38),
 
         // Delegation size
-        _FormFieldBlock(
-          label: 'Approximate Delegation Size',
-          child: _buildTextField(
-            controller: _delegationSizeController,
-            hint: 'Enter approximate number of delegates',
-            keyboardType: TextInputType.number,
-            validator: _delegationSizeValidator,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        KeyedSubtree(
+          key: _delegationSizeKey,
+          child: _FormFieldBlock(
+            label: 'Approximate Delegation Size',
+            child: _buildTextField(
+              controller: _delegationSizeController,
+              hint: 'Enter approximate number of delegates',
+              keyboardType: TextInputType.number,
+              validator: _delegationSizeValidator,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
           ),
         ),
       ],
@@ -879,12 +998,15 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 30),
 
           // Full name
-          _FormFieldBlock(
-            label: 'Delegate Full Name',
-            child: _buildTextField(
-              controller: delegate.nameController,
-              hint: 'John Doe',
-              validator: _required,
+          KeyedSubtree(
+            key: delegate.nameKey,
+            child: _FormFieldBlock(
+              label: 'Delegate Full Name',
+              child: _buildTextField(
+                controller: delegate.nameController,
+                hint: 'John Doe',
+                validator: _required,
+              ),
             ),
           ),
 
@@ -892,25 +1014,31 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
 
           // Email + contact
           if (isMobile) ...[
-            _FormFieldBlock(
-              label: 'Email Address',
-              child: _buildTextField(
-                controller: delegate.emailController,
-                hint: 'example@email.com',
-                keyboardType: TextInputType.emailAddress,
-                validator: _emailValidator,
+            KeyedSubtree(
+              key: delegate.emailKey,
+              child: _FormFieldBlock(
+                label: 'Email Address',
+                child: _buildTextField(
+                  controller: delegate.emailController,
+                  hint: 'example@email.com',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: _emailValidator,
+                ),
               ),
             ),
 
             const SizedBox(height: 32),
 
-            _FormFieldBlock(
-              label: 'Contact Number',
-              child: _buildTextField(
-                controller: delegate.contactController,
-                hint: '+91 XXXXX XXXXX',
-                keyboardType: TextInputType.phone,
-                validator: _phoneValidator,
+            KeyedSubtree(
+              key: delegate.contactKey,
+              child: _FormFieldBlock(
+                label: 'Contact Number',
+                child: _buildTextField(
+                  controller: delegate.contactController,
+                  hint: '+91 XXXXX XXXXX',
+                  keyboardType: TextInputType.phone,
+                  validator: _phoneValidator,
+                ),
               ),
             ),
           ] else
@@ -918,13 +1046,16 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _FormFieldBlock(
-                    label: 'Email Address',
-                    child: _buildTextField(
-                      controller: delegate.emailController,
-                      hint: 'example@email.com',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _emailValidator,
+                  child: KeyedSubtree(
+                    key: delegate.emailKey,
+                    child: _FormFieldBlock(
+                      label: 'Email Address',
+                      child: _buildTextField(
+                        controller: delegate.emailController,
+                        hint: 'example@email.com',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: _emailValidator,
+                      ),
                     ),
                   ),
                 ),
@@ -932,13 +1063,16 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
                 const SizedBox(width: 28),
 
                 Expanded(
-                  child: _FormFieldBlock(
-                    label: 'Contact Number',
-                    child: _buildTextField(
-                      controller: delegate.contactController,
-                      hint: '+91 XXXXX XXXXX',
-                      keyboardType: TextInputType.phone,
-                      validator: _phoneValidator,
+                  child: KeyedSubtree(
+                    key: delegate.contactKey,
+                    child: _FormFieldBlock(
+                      label: 'Contact Number',
+                      child: _buildTextField(
+                        controller: delegate.contactController,
+                        hint: '+91 XXXXX XXXXX',
+                        keyboardType: TextInputType.phone,
+                        validator: _phoneValidator,
+                      ),
                     ),
                   ),
                 ),
@@ -948,9 +1082,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 32),
 
           if (isMobile) ...[
-            _FormFieldBlock(
-              label: 'Class',
-              child: _buildClassDropdown(delegate),
+            KeyedSubtree(
+              key: delegate.classKey,
+              child: _FormFieldBlock(
+                label: 'Class',
+                child: _buildClassDropdown(delegate),
+              ),
             ),
 
             const SizedBox(height: 32),
@@ -959,9 +1096,12 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _FormFieldBlock(
-                    label: 'Class',
-                    child: _buildClassDropdown(delegate),
+                  child: KeyedSubtree(
+                    key: delegate.classKey,
+                    child: _FormFieldBlock(
+                      label: 'Class',
+                      child: _buildClassDropdown(delegate),
+                    ),
                   ),
                 ),
                 const Expanded(child: SizedBox()),
@@ -983,50 +1123,62 @@ class _RegisterInstituteState extends State<RegisterInstitute> {
           const SizedBox(height: 42),
 
           // Committee Preference 1
-          _buildCommitteeSection(
-            title: 'Committee Preference 01',
-            value: delegate.committeePreference1,
-            onChanged: (value) {
-              setState(() {
-                delegate.committeePreference1 = value;
-              });
-            },
-            isMobile: isMobile,
+          KeyedSubtree(
+            key: delegate.committeePreference1Key,
+            child: _buildCommitteeSection(
+              title: 'Committee Preference 01',
+              value: delegate.committeePreference1,
+              onChanged: (value) {
+                setState(() {
+                  delegate.committeePreference1 = value;
+                });
+              },
+              isMobile: isMobile,
+            ),
           ),
 
           const SizedBox(height: 42),
 
           // Committee Preference 2
-          _buildCommitteeSection(
-            title: 'Committee Preference 02',
-            value: delegate.committeePreference2,
-            onChanged: (value) {
-              setState(() {
-                delegate.committeePreference2 = value;
-              });
-            },
-            isMobile: isMobile,
+          KeyedSubtree(
+            key: delegate.committeePreference2Key,
+            child: _buildCommitteeSection(
+              title: 'Committee Preference 02',
+              value: delegate.committeePreference2,
+              onChanged: (value) {
+                setState(() {
+                  delegate.committeePreference2 = value;
+                });
+              },
+              isMobile: isMobile,
+            ),
           ),
 
           const SizedBox(height: 38),
 
-          _FormFieldBlock(
-            label: 'Portfolio Preference 01',
-            child: _buildTextField(
-              controller: delegate.portfolioPreference1Controller,
-              hint: 'Enter portfolio preference for committee 1',
-              validator: _required,
+          KeyedSubtree(
+            key: delegate.portfolioPreference1Key,
+            child: _FormFieldBlock(
+              label: 'Portfolio Preference 01',
+              child: _buildTextField(
+                controller: delegate.portfolioPreference1Controller,
+                hint: 'Enter portfolio preference for committee 1',
+                validator: _required,
+              ),
             ),
           ),
 
           const SizedBox(height: 32),
 
-          _FormFieldBlock(
-            label: 'Portfolio Preference 02',
-            child: _buildTextField(
-              controller: delegate.portfolioPreference2Controller,
-              hint: 'Enter portfolio preference for committee 2',
-              validator: _required,
+          KeyedSubtree(
+            key: delegate.portfolioPreference2Key,
+            child: _FormFieldBlock(
+              label: 'Portfolio Preference 02',
+              child: _buildTextField(
+                controller: delegate.portfolioPreference2Controller,
+                hint: 'Enter portfolio preference for committee 2',
+                validator: _required,
+              ),
             ),
           ),
         ],
@@ -1305,6 +1457,14 @@ class _DelegateFormData {
   final munExperienceController = TextEditingController();
   final portfolioPreference1Controller = TextEditingController();
   final portfolioPreference2Controller = TextEditingController();
+  final nameKey = GlobalKey();
+  final emailKey = GlobalKey();
+  final contactKey = GlobalKey();
+  final classKey = GlobalKey();
+  final committeePreference1Key = GlobalKey();
+  final committeePreference2Key = GlobalKey();
+  final portfolioPreference1Key = GlobalKey();
+  final portfolioPreference2Key = GlobalKey();
 
   String? selectedClass;
   String? committeePreference1;

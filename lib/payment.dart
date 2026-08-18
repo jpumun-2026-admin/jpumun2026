@@ -600,98 +600,114 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildConfirmationView({required bool isMobile}) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 24 : 34),
-      decoration: BoxDecoration(
-        color: fieldBackground,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: red, width: 1.3),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Payment Proof Submitted',
-            style: GoogleFonts.prata(
-              color: gold,
-              fontSize: isMobile ? 34 : 44,
-              fontWeight: FontWeight.w700,
-              height: 1.15,
-            ),
+    return Column(
+      children: [
+        // Center(
+        //   child: Image.asset(
+        //     'lib/assets/new_logo.png',
+        //     width: isMobile ? 92 : 200,
+        //     fit: BoxFit.contain,
+        //   ),
+        // ),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(isMobile ? 24 : 34),
+          decoration: BoxDecoration(
+            color: fieldBackground,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: red, width: 1.3),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Your registration has been submitted successfully!',
-            style: GoogleFonts.ibmPlexSans(
-              color: white,
-              fontSize: isMobile ? 15 : 18,
-              height: 1.75,
-            ),
-          ),
-          SizedBox(height: isMobile ? 24 : 30),
-          Wrap(
-            spacing: 18,
-            runSpacing: 18,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _InfoCard(title: 'Registration ID', value: widget.registrationId),
-              const _InfoCard(
-                title: 'Payment Status',
-                value: 'AWAITING VERIFICATION',
+              const SizedBox(height: 5),
+              const SizedBox(height: 18),
+              Text(
+                'Payment Proof Submitted',
+                style: GoogleFonts.prata(
+                  color: gold,
+                  fontSize: isMobile ? 34 : 44,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                ),
               ),
-              _InfoCard(
-                title: 'Amount Submitted',
-                value: formatInrFromPaise(widget.amountPaise),
+              const SizedBox(height: 16),
+              Text(
+                'Your registration has been submitted successfully!',
+                style: GoogleFonts.ibmPlexSans(
+                  color: white,
+                  fontSize: isMobile ? 15 : 18,
+                  height: 1.75,
+                ),
+              ),
+              SizedBox(height: isMobile ? 24 : 30),
+              Wrap(
+                spacing: 18,
+                runSpacing: 18,
+                children: [
+                  _InfoCard(
+                    title: 'Registration ID',
+                    value: widget.registrationId,
+                  ),
+                  const _InfoCard(
+                    title: 'Payment Status',
+                    value: 'AWAITING VERIFICATION',
+                  ),
+                  _InfoCard(
+                    title: 'Amount Submitted',
+                    value: formatInrFromPaise(widget.amountPaise),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: gold.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  'For further information regarding the event, please wait until your payment has been verified',
+                  style: GoogleFonts.ibmPlexSans(
+                    color: white,
+                    fontSize: 15,
+                    height: 1.7,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/home', (route) => false);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: gold,
+                    foregroundColor: background,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: Text(
+                    'BACK TO HOME',
+                    style: GoogleFonts.prata(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: gold.withValues(alpha: 0.4)),
-            ),
-            child: Text(
-              'For further information regarding the event, please wait until your payment has been verified',
-              style: GoogleFonts.ibmPlexSans(
-                color: white,
-                fontSize: 15,
-                height: 1.7,
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/home', (route) => false);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: gold,
-                foregroundColor: background,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              child: Text(
-                'BACK TO HOME',
-                style: GoogleFonts.prata(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
