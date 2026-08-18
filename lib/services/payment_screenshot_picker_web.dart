@@ -1,21 +1,25 @@
 // ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html' as html;
-import 'dart:typed_data';
 
 import 'payment_screenshot_picker.dart';
 
 Future<PickedScreenshot?> pickPaymentScreenshot() async {
   final input = html.FileUploadInputElement()
     ..accept = '.jpg,.jpeg,.png,.webp'
-    ..multiple = false;
+    ..multiple = false
+    ..style.display = 'none';
+
+  html.document.body?.append(input);
 
   final completer = Completer<PickedScreenshot?>();
 
   input.onChange.first.then((_) {
     final file = input.files?.isNotEmpty == true ? input.files!.first : null;
     if (file == null) {
+      input.remove();
       completer.complete(null);
       return;
     }
@@ -24,12 +28,14 @@ Future<PickedScreenshot?> pickPaymentScreenshot() async {
 
     reader.onLoadEnd.first.then((_) {
       final result = reader.result;
-      if (result is! ByteBuffer) {
+      input.remove();
+      if (result is! String || !result.contains(',')) {
         completer.complete(null);
         return;
       }
 
-      final bytes = Uint8List.view(result);
+      final base64Data = result.split(',').last;
+      final bytes = base64Decode(base64Data);
       completer.complete(
         PickedScreenshot(
           bytes: bytes,
@@ -41,6 +47,7 @@ Future<PickedScreenshot?> pickPaymentScreenshot() async {
     });
 
     reader.onError.first.then((_) {
+      input.remove();
       if (!completer.isCompleted) {
         completer.completeError(
           StateError('Could not read the selected screenshot.'),
@@ -48,7 +55,7 @@ Future<PickedScreenshot?> pickPaymentScreenshot() async {
       }
     });
 
-    reader.readAsArrayBuffer(file);
+    reader.readAsDataUrl(file);
   });
 
   input.click();
