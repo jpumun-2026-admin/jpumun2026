@@ -257,7 +257,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final decoded = await RegistrationApi.submitRegistration(data);
-      final registrationId = decoded['registration_id']?.toString();
+      final registrationId = RegistrationApi.extractRegistrationId(decoded);
       if (registrationId == null || registrationId.isEmpty) {
         throw const RegistrationApiException(
           'Registration was created, but no registration ID was returned.',

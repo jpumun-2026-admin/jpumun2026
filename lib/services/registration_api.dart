@@ -68,4 +68,28 @@ class RegistrationApi {
 
     return decoded;
   }
+
+  static String? extractRegistrationId(Map<String, dynamic> response) {
+    final directKeys = [
+      response['registration_id'],
+      response['registrationId'],
+      response['registrationID'],
+      response['id'],
+    ];
+
+    for (final value in directKeys) {
+      final text = value?.toString().trim();
+      if (text != null && text.isNotEmpty) {
+        return text;
+      }
+    }
+
+    final message = response['message']?.toString() ?? '';
+    final match = RegExp(
+      r'\b(?:IND|INST)-\d{8,}-\d{3,}\b',
+      caseSensitive: false,
+    ).firstMatch(message);
+
+    return match?.group(0);
+  }
 }
