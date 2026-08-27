@@ -21,7 +21,7 @@ class ResourcesSection extends StatelessWidget {
       title: 'JPUMUN\nBROCHURE',
       icon: Icons.menu_book_rounded,
       url:
-          'https://drive.google.com/file/d/1pbjOlMUXGBXQ5FNFJ8qOWCxMxJOLNcCy/view?usp=sharing',
+          'https://drive.google.com/file/d/1WuDKgTY0LeBhQQB--YMS_gnJOav78BW2/view?usp=sharing',
     ),
     _ResourceData(
       title: 'BACKGROUND\nGUIDE',
